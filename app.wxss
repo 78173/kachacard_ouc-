@@ -1,0 +1,274 @@
+/** 全局样式：主题变量 + 通用动画 */
+
+page {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+}
+
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-bottom: 60rpx;
+  background: var(--bg); /* 让“暗色”真正作用于页面画布（随 .dark 切换） */
+}
+
+/** 通用分割标题 */
+.section-title {
+  display: flex;
+  align-items: baseline;
+  margin: 30rpx 32rpx 18rpx;
+}
+.section-title .t {
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+.section-title .sub {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: var(--sub);
+}
+
+/* ---------- 分段控件 ---------- */
+.seg {
+  display: inline-flex;
+  background: var(--line);
+  border-radius: 40rpx;
+  padding: 6rpx;
+}
+.seg .seg-item {
+  padding: 10rpx 30rpx;
+  border-radius: 36rpx;
+  font-size: 25rpx;
+  color: var(--sub);
+  transition: all 0.25s ease;
+}
+.seg .seg-item.on {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 2rpx 10rpx rgba(15, 23, 42, 0.12);
+}
+
+/* ---------- 胶囊 chips ---------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+.chip {
+  padding: 10rpx 26rpx;
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  color: var(--sub);
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.chip:active { transform: scale(0.94); }
+.chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---------- 主按钮 ---------- */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #fff;
+  border-radius: 50rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  box-shadow: 0 10rpx 26rpx rgba(15, 23, 42, 0.28);
+}
+.btn-ghost {
+  background: var(--surface);
+  color: var(--accent);
+  border: 2rpx solid var(--accent-soft);
+}
+
+/* ---------- 空状态 ---------- */
+.empty {
+  padding: 120rpx 60rpx;
+  text-align: center;
+  color: var(--sub);
+  animation: fadeUp 0.5s ease both;
+}
+.empty .ico { font-size: 90rpx; }
+.empty .txt { margin-top: 22rpx; font-size: 26rpx; line-height: 1.7; }
+
+/* ---------- 入场动画 ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(26rpx); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.86); }
+  70%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.45) rotate(10deg); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.anim-fadeUp { animation: fadeUp 0.45s ease both; }
+.anim-popIn  { animation: popIn 0.4s cubic-bezier(.3,1.4,.6,1) both; }
+.anim-i1 { animation-delay: 0.03s; }
+.anim-i2 { animation-delay: 0.07s; }
+.anim-i3 { animation-delay: 0.11s; }
+.anim-i4 { animation-delay: 0.15s; }
+.anim-i5 { animation-delay: 0.19s; }
+.anim-i6 { animation-delay: 0.23s; }
+.anim-i7 { animation-delay: 0.27s; }
+.anim-i8 { animation-delay: 0.31s; }
+
+.heart-active { animation: heartPop 0.4s ease; }
+
+/* ---------- 卡片淡入淡出切换（列表分类切换时用） ---------- */
+.list-switch { animation: fadeIn 0.35s ease both; }
+
+button::after { border: none; }
+
+
+/* ============ 主题 tokens（亮/暗）============ */
+page {
+  --bg: #f2f9fb;
+  --surface: #ffffff;
+  --ink: #1f2d3d;
+  --sub: #5e7a86;
+  --line: #d9eef2;
+  --accent: #0fa3ad;
+  --accent-2: #19b7b3;
+  --accent-soft: #a7ecec;
+  --on-accent: #ffffff;
+}
+.page.dark {
+  --bg: #0b1220;
+  --surface: #141e33;
+  --ink: #e6edf6;
+  --sub: #94a3b8;
+  --line: #223049;
+  --accent: #5eead4;
+  --accent-2: #2dd4bf;
+  --accent-soft: #2f8f84;
+  --on-accent: #05352e;
+}
+.page.dark .search-box,
+.page.dark .ratio-chip { border-color: var(--line); }
+
+/* 深色下：以 accent 为底色的控件文字切换为深色保证对比 */
+.page.dark .chip.on,
+.page.dark .phrase-manage.on,
+.page.dark .btn-locate,
+.page.dark .acc-use,
+.page.dark .acc-active,
+.page.dark .empty-btn,
+.page.dark .tpl-check,
+.page.dark .sec-head .no,
+.page.dark .send-btn,
+.page.dark .save-btn,
+.page.dark .acc-ava-txt { color: var(--on-accent); }
+.page.dark .chip.on { background: var(--accent); border-color: var(--accent); }
+.page.dark .chip-add,
+.page.dark .sheet-add { border-color: var(--accent-soft); color: var(--accent); }
+
+
+/* 深色下个别固定浅色/亮色的收尾调整 */
+.page.dark .act.ghost,
+.page.dark .note-badge { background: var(--line); }
+.page.dark .preview-empty { background: rgba(20, 30, 51, 0.6); }
+.page.dark .auto-btn { background: rgba(255, 255, 255, 0.16); }
+.page.dark .me { background: linear-gradient(135deg, #148a80, #0a4f4b); }
+.page.dark .acc-row.cur { background: #16302e; }
+.page.dark .sheet-empty-hint { background: #16233b; color: #a9c4d8; }
+.page.dark .fav.on { background: rgba(20, 30, 51, 0.92); }
+
+.page.dark .me-tag { color: #c7f2ea; border-color: rgba(255, 255, 255, 0.35); }
+.page.dark .phrase-tip { color: var(--accent-2); }
+
+.page.dark .tp.on { background: #16302e; }
+.page.dark .fchip { color: var(--ink); }
+
+/* ============ 体积感（统一投影 / 高光 / 立体按压） ============ */
+.page .sec,
+.page .filter-panel,
+.page .stats,
+.page .maker,
+.page .note,
+.page .compose,
+.page .reserved-box,
+.page .reorder-list .re-row,
+.page .photo-sort-list .ps-row {
+  border: 1rpx solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 12rpx 26rpx -10rpx rgba(15, 23, 42, 0.22),
+    0 2rpx 6rpx rgba(15, 23, 42, 0.05),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+}
+.page.dark .sec,
+.page.dark .filter-panel,
+.page.dark .stats,
+.page.dark .maker,
+.page.dark .note,
+.page.dark .compose,
+.page.dark .reserved-box,
+.page.dark .reorder-list .re-row,
+.page.dark .photo-sort-list .ps-row {
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 14rpx 30rpx -12rpx rgba(0, 0, 0, 0.55),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.05);
+}
+
+.page .chip,
+.page .mini-chip,
+.page .ratio-chip,
+.page .fchip,
+.page .tf-opt {
+  box-shadow:
+    0 4rpx 10rpx -4rpx rgba(15, 23, 42, 0.22),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.85);
+}
+.page .chip:active,
+.page .fchip:active,
+.page .tf-opt:active,
+.page .mini-chip:active,
+.page .ratio-chip:active { transform: translateY(1rpx) scale(0.97); }
+
+.page .hact,
+.page .send-btn,
+.page .save-btn,
+.page .empty-btn,
+.page .sheet-add,
+.page .new-btn {
+  box-shadow:
+    0 12rpx 24rpx -8rpx rgba(14, 163, 173, 0.5),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3rpx 0 rgba(0, 0, 0, 0.12);
+}
+.page .hact:active,
+.page .send-btn:active,
+.page .save-btn:active,
+.page .empty-btn:active { transform: translateY(2rpx) scale(0.99); }
+
+/* ============ 页面切换过渡（Tab 切换 / 进入页面） ============ */
+/* 只做透明度过渡：避免 transform 影响页面内 fixed 浮层的定位 */
+@keyframes pageInA {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pageInB {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.enter-a { animation: pageInA 0.42s cubic-bezier(0.22, 0.9, 0.28, 1) both; }
+.enter-b { animation: pageInB 0.42s cubic-bezier(0.22, 0.9, 0.28, 1) both; }

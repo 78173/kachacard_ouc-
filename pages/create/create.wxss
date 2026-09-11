@@ -1,0 +1,403 @@
+.create {
+  padding-bottom: 220rpx;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 26%, var(--bg) 100%);
+}
+
+.create-intro {
+  position: relative;
+  overflow: hidden;
+  padding: 40rpx 34rpx 16rpx;
+}
+.ci-title { display: block; position: relative; z-index: 1; font-size: 40rpx; font-weight: 800; color: var(--accent); letter-spacing: 1rpx; }
+.ci-sub { display: block; position: relative; z-index: 1; margin-top: 10rpx; font-size: 23rpx; color: var(--sub); }
+/* 装饰：右上柔和光环 + 点阵 */
+.create-intro::before {
+  content: "";
+  position: absolute;
+  right: -40rpx;
+  top: -70rpx;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.12) 0 32%, rgba(99, 102, 241, 0.08) 33% 62%, transparent 63%);
+}
+.create-intro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 6rpx;
+  width: 100%;
+  height: 46rpx;
+  background-image: radial-gradient(circle 4rpx at 10rpx 10rpx, rgba(20, 184, 166, 0.14) 0 40%, transparent 42%);
+  background-size: 20rpx 20rpx;
+  opacity: 0.5;
+}
+
+/* ---------- 通用小节 ---------- */
+.sec {
+  background: var(--surface);
+  margin: 20rpx 24rpx 0;
+  border-radius: 24rpx;
+  padding: 26rpx 26rpx 30rpx;
+  box-shadow: 0 6rpx 24rpx rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+.sec-head { display: flex; align-items: baseline; margin-bottom: 22rpx; flex-wrap: wrap; }
+.sec-head .no {
+  width: 36rpx; height: 36rpx;
+  line-height: 36rpx; text-align: center;
+  background: var(--accent); color: #fff;
+  border-radius: 50%;
+  font-size: 20rpx; font-weight: 700;
+  margin-right: 14rpx;
+}
+.sec-head .st { font-size: 30rpx; font-weight: 700; color: var(--ink); }
+.sec-head .hint { width: 100%; margin: 8rpx 0 0 50rpx; font-size: 21rpx; color: var(--sub); }
+
+/* ---------- ① 照片 ---------- */
+.photo-add {
+  border: 3rpx dashed var(--line);
+  border-radius: 20rpx;
+  padding: 46rpx 20rpx;
+  text-align: center;
+  color: var(--sub);
+  background: var(--line);
+}
+.photo-add:active { background: var(--line); }
+.pa-ico { font-size: 64rpx; }
+.pa-main { margin-top: 12rpx; font-size: 27rpx; color: var(--sub); }
+.pa-sub { margin-top: 6rpx; font-size: 21rpx; color: var(--sub); }
+
+.photo-grid { display: flex; flex-wrap: wrap; }
+.photo-cell {
+  position: relative;
+  width: 30.7%;
+  margin: 0 3.9% 18rpx 0;
+  height: 200rpx;
+  border-radius: 14rpx;
+  overflow: visible;
+  background: var(--line);
+}
+.photo-cell:nth-child(3n) { margin-right: 0; }
+.p-img { width: 100%; height: 100%; border-radius: 14rpx; display: block; }
+
+.cover-tag {
+  position: absolute;
+  left: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.85);
+  color: #fff;
+  font-size: 18rpx;
+  padding: 3rpx 12rpx;
+  border-radius: 0 10rpx 0 10rpx;
+}
+.op {
+  position: absolute;
+  width: 44rpx; height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 22rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+.op-cover { top: -10rpx; left: -10rpx; }
+.op-del { top: -10rpx; right: -10rpx; background: rgba(200, 60, 60, 0.85); }
+.photo-cell.add {
+  border: 3rpx dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--line);
+  box-sizing: border-box;
+}
+.add-ico { font-size: 52rpx; color: var(--sub); line-height: 1; }
+.add-txt { margin-top: 8rpx; font-size: 20rpx; color: var(--sub); }
+
+/* ---------- 实时预览 ---------- */
+.preview-wrap {
+  margin: 26rpx 30rpx 0;
+}
+.preview-label {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: var(--sub);
+  margin-bottom: 14rpx;
+}
+.live-dot {
+  width: 14rpx; height: 14rpx;
+  border-radius: 50%;
+  background: var(--accent-2);
+  margin-right: 12rpx;
+  animation: blink 1.1s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.preview-empty {
+  background: rgba(255, 255, 255, 0.7);
+  border: 3rpx dashed var(--line);
+  border-radius: 20rpx;
+  padding: 60rpx 20rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--sub);
+}
+
+/* ---------- ② 模板 ---------- */
+.sub-label {
+  font-size: 23rpx;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 20rpx 2rpx 12rpx;
+}
+.ratio-chips { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.ratio-chip {
+  padding: 12rpx 26rpx;
+  background: var(--surface);
+  border: 2rpx solid var(--line);
+  border-radius: 34rpx;
+  font-size: 24rpx;
+  color: var(--sub);
+  transition: all 0.2s ease;
+}
+.ratio-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+  font-weight: 700;
+}
+.ratio-chip:active { transform: scale(0.94); }
+
+.bg-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.bg-chip {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  border: 4rpx solid transparent;
+  box-shadow: 0 2rpx 10rpx rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+.bg-chip.on { border-color: var(--accent); transform: scale(1.1); }
+.bg-chip:active { transform: scale(0.94); }
+.bg-actions { display: flex; gap: 14rpx; margin-top: 16rpx; }
+
+/* ---------- 照片拖动排序 ---------- */
+.photo-tools {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+}
+.mini-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+  font-weight: 700;
+}
+.photo-tip { margin-left: 16rpx; font-size: 20rpx; color: var(--sub); }
+.photo-sort-list { margin-top: 18rpx; }
+.ps-row {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: 18rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 14rpx;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.ps-row.drag { opacity: 0.6; transform: scale(0.98); }
+.ps-idx {
+  width: 44rpx;
+  text-align: center;
+  color: var(--sub);
+  font-size: 24rpx;
+}
+.ps-thumb {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 12rpx;
+  background: var(--line);
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+.ps-info { flex: 1; font-size: 24rpx; color: var(--sub); min-width: 0; }
+.cover-badge {
+  color: var(--accent);
+  font-weight: 700;
+}
+.ps-grip { font-size: 42rpx; color: var(--line); padding-left: 12rpx; }
+
+.tpl-scroll { white-space: nowrap; }
+.tpl-row { display: inline-flex; padding: 6rpx 4rpx; }
+.tpl-item { margin-right: 22rpx; text-align: center; }
+.tpl-swatch {
+  position: relative;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 18rpx;
+  border: 4rpx solid transparent;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.tpl-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 6rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.55);
+  border-radius: 10rpx;
+}
+.tpl-item.on .tpl-swatch { border-color: var(--accent); transform: scale(1.06); }
+.tpl-check {
+  position: absolute;
+  right: -8rpx; top: -8rpx;
+  width: 40rpx; height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 22rpx;
+  z-index: 2;
+}
+.tpl-name { margin-top: 10rpx; font-size: 23rpx; color: var(--ink); }
+
+/* ---------- ③ 快捷语 ---------- */
+.picked-tags { display: flex; flex-wrap: wrap; margin-bottom: 18rpx; gap: 10rpx; }
+.picked-tag {
+  background: var(--line);
+  color: var(--accent);
+  border: 2rpx solid var(--accent-soft);
+  border-radius: 26rpx;
+  padding: 6rpx 20rpx;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+.phrase-chips { margin-top: 18rpx; }
+
+.phrase-tool {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.phrase-manage {
+  font-size: 22rpx;
+  color: var(--sub);
+  background: var(--line);
+  border-radius: 30rpx;
+  padding: 8rpx 22rpx;
+}
+.phrase-manage.on {
+  background: var(--accent);
+  color: #fff;
+}
+.phrase-tip {
+  margin-left: 16rpx;
+  font-size: 19rpx;
+  color: var(--accent-soft);
+}
+
+.phrase-chips .chip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.phrase-chips .chip {
+  margin: 0;
+}
+.ph-del {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #d9534f;
+  color: #fff;
+  font-size: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(180, 40, 40, 0.35);
+  z-index: 3;
+}
+.chip-add {
+  display: inline-block;
+  margin-top: 20rpx;
+  padding: 12rpx 28rpx;
+  border: 2rpx dashed var(--accent-soft);
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  color: var(--accent-soft);
+}
+.chip-add:active { background: var(--line); }
+
+/* ---------- ④ 时间地点 ---------- */
+.field { margin-bottom: 26rpx; }
+.field:last-child { margin-bottom: 6rpx; }
+.field-label { font-size: 25rpx; color: var(--sub); font-weight: 600; display: block; margin-bottom: 14rpx; }
+.field-input {
+  background: var(--line);
+  border-radius: 16rpx;
+  padding: 18rpx 22rpx;
+  font-size: 26rpx;
+  height: auto;
+}
+.ph { color: var(--sub); }
+.field-inline { display: flex; align-items: center; }
+.flex-1 { flex: 1; }
+.btn-locate {
+  margin-left: 16rpx;
+  padding: 14rpx 26rpx;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+}
+.field-presets { display: flex; gap: 14rpx; margin-bottom: 14rpx; }
+.place-chips { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 14rpx; }
+.mini-chip {
+  padding: 8rpx 22rpx;
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  border-radius: 30rpx;
+  font-size: 22rpx;
+  color: var(--sub);
+}
+.mini-chip:active { transform: scale(0.94); }
+
+/* ---------- ⑤ 预留长文本 ---------- */
+.reserved-box { background: var(--line); border-radius: 18rpx; padding: 20rpx 22rpx 12rpx; }
+.reserved-area {
+  width: 100%;
+  min-height: 120rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+.reserved-foot {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding-top: 12rpx;
+  border-top: 2rpx dashed var(--line);
+}
+.counter { margin-left: auto; font-size: 21rpx; color: var(--sub); }
+
+/* ---------- 保存栏 ---------- */
+.save-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 18rpx 30rpx 30rpx;
+  background: linear-gradient(180deg, rgba(243, 246, 249, 0), var(--bg) 40%);
+  z-index: 10;
+}
+.save-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #fff;
+  border-radius: 50rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  box-shadow: 0 10rpx 26rpx rgba(15, 23, 42, 0.3);
+}
+.save-btn:active { opacity: 0.88; transform: scale(0.99); }

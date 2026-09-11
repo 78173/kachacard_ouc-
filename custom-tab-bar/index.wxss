@@ -1,0 +1,90 @@
+.tbb {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  height: 108rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 -4rpx 24rpx rgba(15, 23, 42, 0.12);
+}
+
+.tbb-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+.tbb-item.on { color: var(--accent); }
+.tbb-item:active { transform: scale(0.92); }
+.tbb-ico { font-size: 40rpx; line-height: 1; }
+.tbb-label { margin-top: 6rpx; font-size: 20rpx; }
+
+/* 中央做卡片按钮 */
+.tbb-mid {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mid-btn {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  margin-top: -58rpx;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 8rpx solid var(--bg);
+  box-sizing: border-box;
+  transition: transform 0.15s ease;
+}
+.mid-btn:active { transform: scale(0.92); }
+.mid-plus {
+  font-size: 52rpx;
+  font-weight: 300;
+  line-height: 1;
+  height: 48rpx;
+}
+.mid-txt {
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  margin-top: 2rpx;
+}
+
+
+/* 亮/暗 token（组件独立作用域） */
+.tbb {
+  --bg: #f2f9fb;
+  --surface: #ffffff;
+  --sub: #5e7a86;
+  --accent: #0fa3ad;
+  --accent-2: #19b7b3;
+  --accent-soft: #a7ecec;
+}
+.tbb.dark {
+  --bg: #0b1220;
+  --surface: #141e33;
+  --sub: #94a3b8;
+  --accent: #5eead4;
+  --accent-2: #2dd4bf;
+  --accent-soft: #2f8f84;
+  background: rgba(16, 26, 44, 0.97);
+  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.4);
+}
+.tab-img {
+  width: 48rpx;
+  height: 48rpx;
+}

@@ -1,0 +1,226 @@
+<!-- 拼图墙瓦片模板（浏览态 / 编辑态共用） -->
+<template name="tplCollage">
+  <view
+    wx:for="{{collage}}"
+    wx:key="id"
+    class="ctile {{cDrag && cIdx === index ? 'dragging' : ''}} {{item.size === 'wide' ? 'wide' : ''}}"
+    style="{{item.style}}"
+    data-i="{{index}}"
+    bindlongpress="onTileStart"
+    bindtouchmove="onTileMove"
+    bindtouchend="onTileEnd"
+    bindtouchcancel="onTileEnd"
+    bindtap="onTileTap"
+  >
+    <image class="ct-img" src="{{item.card.photos[0]}}" mode="aspectFill" style="{{item.imgStyle}}" />
+    <view class="ct-info">
+      <view class="ct-main">{{item.main}}</view>
+      <view wx:for="{{item.others}}" wx:for-item="o" wx:key="*this" class="ct-line">· {{o}}</view>
+      <view wx:if="{{item.meta}}" class="ct-meta">{{item.meta}}</view>
+    </view>
+    <view wx:if="{{collageEdit}}" class="ct-size" catchtap="onTileSize" data-i="{{index}}">{{item.size === 'wide' ? '⤡' : '⤢'}}</view>
+  </view>
+</template>
+
+<view class="page profile {{theme}} enter-a" wx:if="{{user}}">
+
+  <!-- 身份卡片 -->
+  <view class="me anim-fadeUp">
+    <view class="me-orn mo-a"></view>
+    <view class="me-orn mo-b"></view>
+    <view class="me-orn mo-c"></view>
+    <view class="me-ava" bindtap="onChangeAvatar">
+      <image wx:if="{{user.avatar}}" class="m-ava-img" src="{{user.avatar}}" mode="aspectFill" />
+      <view wx:else class="me-ava-text" style="background: {{user.avatarColor}};">{{user.ini}}</view>
+      <view class="me-ava-edit">改</view>
+    </view>
+    <view class="me-info">
+      <view class="me-name" bindtap="onEditName">{{user.nickname}} ✎</view>
+      <view class="me-id">ID · {{user.uid}}</view>
+      <view class="me-tag-row">
+        <view class="me-tag" bindtap="toggleAccounts">⇄ 切换 / 管理账号 · {{accounts.length}}</view>
+        <view class="me-tag" bindtap="onToggleTheme">{{theme === 'dark' ? '☀️ 浅色模式' : '🌙 深色模式'}}</view>
+      </view>
+      <view class="me-scope">当前使用「{{user.nickname}}」 · 卡片 / 收藏 / 标签按账号区分</view>
+    </view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="stats anim-fadeUp anim-i1">
+    <view class="stat">
+      <text class="sv">{{stats.made}}</text>
+      <text class="sl">我制作的</text>
+    </view>
+    <view class="stat">
+      <text class="sv">{{stats.fav}}</text>
+      <text class="sl">收藏</text>
+    </view>
+    <view class="stat tap" bindtap="togglePhrases">
+      <text class="sv">{{stats.phrases}}</text>
+      <text class="sl">标签素材 · 预览 ›</text>
+    </view>
+  </view>
+
+  <!-- 分段：我制作的 / 我的收藏 -->
+  <view class="me-seg anim-fadeUp anim-i2">
+    <view class="me-seg-item {{seg === 'made' ? 'on' : ''}}" data-seg="made" bindtap="onSeg">我制作的 {{madeList.length}}</view>
+    <view class="me-seg-item {{seg === 'fav' ? 'on' : ''}}" data-seg="fav" bindtap="onSeg">我的收藏 {{favList.length}}</view>
+  </view>
+
+  <!-- ===== 我制作的：卡片墙 + 拖动排序 ===== -->
+  <block wx:if="{{seg === 'made'}}">
+    <view class="list-tool anim-fadeUp anim-i2">
+      <text class="lt-hint">{{reorderMode ? '长按拖动排列，松手即保存' : '我制作的 · 卡片墙'}}</text>
+      <view wx:if="{{madeList.length > 1}}" class="lt-sort {{reorderMode ? 'on' : ''}}" bindtap="onSortToggle">{{reorderMode ? '完成' : '⇅ 拖动排序'}}</view>
+    </view>
+
+    <view wx:if="{{reorderMode}}" class="reorder-list">
+      <view
+        wx:for="{{madeList}}"
+        wx:key="id"
+        class="re-row {{dragCur === index ? 'drag' : ''}}"
+        data-i="{{index}}"
+        bindlongpress="onRowStart"
+        bindtouchmove="onRowMove"
+        bindtouchend="onRowEnd"
+        bindtouchcancel="onRowEnd"
+      >
+        <view class="re-idx">{{index + 1}}</view>
+        <image class="re-thumb" src="{{item.photos[0]}}" mode="aspectFill" />
+        <view class="re-info">
+          <view class="re-t">{{item.phrases[0].text}}</view>
+          <view class="re-d">{{item.createdDay}}</view>
+        </view>
+        <view class="re-grip">≡</view>
+      </view>
+    </view>
+
+    <view wx:else class="grid {{swap ? 'swapB' : 'swapA'}}">
+      <view class="mcol">
+        <view wx:for="{{madeCols.left}}" wx:key="id" class="mcell anim-fadeUp" data-card="{{item}}" bindtap="onCardTap">
+          <view class="cell-inner">
+            <card-view card="{{item}}" mode="poster" />
+            <view class="cell-meta">{{item.timeText || item.createdDay}}</view>
+            <view class="fav {{item.faved ? 'on' : ''}}" catchtap="onToggleFav" data-id="{{item.id}}">{{item.faved ? '♥' : '♡'}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="mcol">
+        <view wx:for="{{madeCols.right}}" wx:key="id" class="mcell anim-fadeUp" data-card="{{item}}" bindtap="onCardTap">
+          <view class="cell-inner">
+            <card-view card="{{item}}" mode="poster" />
+            <view class="cell-meta">{{item.timeText || item.createdDay}}</view>
+            <view class="fav {{item.faved ? 'on' : ''}}" catchtap="onToggleFav" data-id="{{item.id}}">{{item.faved ? '♥' : '♡'}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ===== 我的收藏：拼图墙（自由拖拽 + 自适应大小） ===== -->
+  <block wx:else>
+    <view class="list-tool anim-fadeUp anim-i2">
+      <text class="lt-hint">{{collageEdit ? '按住卡片拖动摆放，松手保存' : '我的收藏 · 拼图墙'}}</text>
+      <view class="lt-tools">
+        <view wx:if="{{favList.length > 1}}" class="lt-sort" bindtap="shuffleFav">🎲 洗牌</view>
+        <view wx:if="{{favList.length > 0}}" class="lt-sort {{collageEdit ? 'on' : ''}}" bindtap="toggleCollageEdit">{{collageEdit ? '完成' : '✥ 编辑拼图'}}</view>
+      </view>
+    </view>
+    <view wx:if="{{collageEdit}}" class="collage-tip">长按任意卡片可自由拖动；点右上角 ⤢ / ⤡ 放大缩小</view>
+
+    <view wx:if="{{collageEdit}}" class="collage-wrap" catchtouchmove="noop">
+      <view id="collageWall" class="collage" style="height:{{collageH}}px;">
+        <template is="tplCollage" data="{{collage: collage, collageEdit: collageEdit, cDrag: cDrag, cIdx: cIdx}}" />
+      </view>
+    </view>
+    <view wx:else class="collage-wrap">
+      <view id="collageWall" class="collage" style="height:{{collageH}}px;">
+        <template is="tplCollage" data="{{collage: collage, collageEdit: collageEdit, cDrag: cDrag, cIdx: cIdx}}" />
+      </view>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view wx:if="{{seg === 'made' && madeList.length === 0}}" class="empty anim-fadeUp">
+    <view class="ico">🎨</view>
+    <view class="txt">还没有制作过卡片<br/>去做一张吧！</view>
+    <view class="empty-btn" bindtap="goCreate">＋ 制作卡片</view>
+  </view>
+  <view wx:if="{{seg === 'fav' && favList.length === 0}}" class="empty anim-fadeUp">
+    <view class="ico">🤍</view>
+    <view class="txt">还没有收藏<br/>把喜欢的卡片收藏到这里</view>
+    <view class="empty-btn" bindtap="goHome">去首页逛逛</view>
+  </view>
+
+  <!-- ======== 账号管理（底部抽屉） ======== -->
+  <view wx:if="{{showAccounts}}" class="acc-mask" bindtap="toggleAccounts" catchtouchmove="noop"></view>
+  <view class="acc-sheet {{showAccounts ? 'show' : ''}}" catchtap="stopBubble" catchtouchmove="noop">
+    <view class="sheet-head">
+      <view class="sheet-title">账号管理</view>
+      <view class="sheet-tip">点击任意一条即可切换账号</view>
+      <view class="sheet-close" catchtap="toggleAccounts">✕</view>
+    </view>
+
+    <scroll-view scroll-y class="sheet-scroll" style="height: {{accH}}px;">
+      <view class="acc-scroll-body">
+        <view wx:if="{{accounts.length <= 1}}" class="sheet-empty-hint">当前只有一个账号。<br/>新建一个后，即可在这里随意来回切换。</view>
+
+        <view
+          wx:for="{{accounts}}"
+          wx:key="uid"
+          class="acc-row {{item.active ? 'cur' : ''}}"
+          data-uid="{{item.uid}}"
+          bindtap="onUseAccount"
+        >
+          <view class="acc-ava" wx:if="{{item.avatar}}">
+            <image class="acc-ava-img" src="{{item.avatar}}" mode="aspectFill" />
+          </view>
+          <view class="acc-ava acc-ava-txt" wx:else style="background: {{item.avatarColor}};">{{item.ini}}</view>
+
+          <view class="acc-info">
+            <view class="acc-name">{{item.nickname}} <text wx:if="{{item.active}}" class="acc-active">当前</text></view>
+            <view class="acc-uid">ID · {{item.uid}}</view>
+          </view>
+
+          <view class="acc-use {{item.active ? 'on' : ''}}">{{item.active ? '正在使用' : '切换 ›'}}</view>
+          <view wx:if="{{!item.active}}" class="acc-del" data-uid="{{item.uid}}" catchtap="onRemoveAccount">删除</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="sheet-new">
+      <input
+        class="new-input"
+        value="{{newName}}"
+        placeholder="给新账号起个名（可留空自动生成）"
+        placeholder-class="ph"
+        bindinput="onNewName"
+      />
+      <view class="new-btn" bindtap="onCreateAccount">＋ 新建</view>
+    </view>
+    <view class="sheet-quick" bindtap="onQuickCreate">快速新建一个账号</view>
+  </view>
+
+  <!-- ======== 标签词库预览（底部抽屉） ======== -->
+  <view wx:if="{{showPhrases}}" class="acc-mask" bindtap="togglePhrases" catchtouchmove="noop"></view>
+  <view class="ph-sheet {{showPhrases ? 'show' : ''}}" catchtap="stopBubble" catchtouchmove="noop">
+    <view class="sheet-head">
+      <view class="sheet-title">标签词库</view>
+      <view class="sheet-tip">当前账号「{{user.nickname}}」 · 共 {{phrasePreview.length}} 条（内置 {{phraseBuilt}} · 自建 {{phrasePreview.length - phraseBuilt}}）<br/>不同账号各自独立；新增/删除在制作页的标签管理</view>
+      <view class="sheet-close" catchtap="togglePhrases">✕</view>
+    </view>
+
+    <scroll-view scroll-y class="sheet-scroll" style="height: {{phH}}px;">
+      <view class="ph-scroll-body">
+        <view wx:if="{{phrasePreview.length === 0}}" class="msg-empty">词库为空，去制作页新增标签吧</view>
+        <view wx:else class="ph-chips">
+          <view wx:for="{{phrasePreview}}" wx:key="id" class="ph-chip {{item.built ? 'built' : ''}}">
+            <text class="ph-chip-emoji">{{item.emoji}}</text>
+            <text class="ph-chip-text">{{item.text}}</text>
+            <text class="ph-chip-tag">{{item.built ? '内置' : '自建'}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

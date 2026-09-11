@@ -1,0 +1,215 @@
+<view class="page index {{theme}} {{swap ? 'enter-b' : 'enter-a'}}">
+
+  <!-- 头部（含装饰） -->
+  <view class="masthead anim-fadeUp">
+    <view class="orn orn-ring-a"></view>
+    <view class="orn orn-ring-b"></view>
+    <view class="orn orn-dot dot-a"></view>
+    <view class="orn orn-dot dot-b"></view>
+    <view class="orn orn-stamp">✿</view>
+    <view class="brand-row">
+      <text class="brand">咔嚓卡片</text>
+      <text class="brand-mark">用照片与标签讲故事</text>
+    </view>
+    <view wx:if="{{hasCards}}" class="brand-dice" bindtap="randomCard">🎲 随机看一张</view>
+  </view>
+
+  <!-- ===== 筛选栏：标签（按使用频率） / 时间（自定义起止）/ 地点 ===== -->
+  <view class="filter-panel anim-fadeUp anim-i1">
+    <view class="fp-head">
+      <text class="fp-title">筛选</text>
+      <text wx:if="{{tagSel.length || locSel.length || dateFrom || dateTo}}" class="fp-reset" bindtap="clearAllFilter">重置</text>
+    </view>
+
+    <!-- 标签筛选：详细筛选入口 + 已选标签 -->
+    <view class="fp-row tagwrap">
+      <view class="fchip opener" bindtap="toggleTagOpen">＋ 标签筛选
+        <text wx:if="{{tagSel.length}}" class="tag-sel-n">{{tagSel.length}}</text>
+      </view>
+      <scroll-view scroll-x class="fp-scroll flex-1" enhanced show-scrollbar="{{false}}">
+        <view class="fp-inner">
+          <view
+            wx:for="{{tagSel}}"
+            wx:key="*this"
+            class="fchip on rm"
+            data-text="{{item}}"
+            bindtap="removeTagSel"
+          >{{item}}<text class="tag-x">✕</text></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 时间筛选：自定义起始 / 终止 -->
+    <view class="fp-row time-row">
+      <view class="tp {{dateFrom ? 'on' : ''}}">
+        <picker mode="date" value="{{dateFrom}}" bindchange="onDateFrom">
+          <view class="tp-val">{{dateFrom || '起始日期'}}</view>
+        </picker>
+      </view>
+      <text class="tp-sep">～</text>
+      <view class="tp {{dateTo ? 'on' : ''}}">
+        <picker mode="date" value="{{dateTo}}" bindchange="onDateTo">
+          <view class="tp-val">{{dateTo || '结束日期'}}</view>
+        </picker>
+      </view>
+      <view class="tp-clear" bindtap="clearTime">不限</view>
+    </view>
+
+    <!-- 地点筛选：详细筛选入口 + 已选地点 -->
+    <view class="fp-row tagwrap">
+      <view class="fchip opener" bindtap="toggleLocOpen">＋ 地点筛选
+        <text wx:if="{{locSel.length}}" class="tag-sel-n">{{locSel.length}}</text>
+      </view>
+      <scroll-view scroll-x class="fp-scroll flex-1" enhanced show-scrollbar="{{false}}">
+        <view class="fp-inner">
+          <view
+            wx:for="{{locSel}}"
+            wx:key="*this"
+            class="fchip on rm"
+            data-text="{{item}}"
+            bindtap="removeLocSel"
+          >📍 {{item}}<text class="tag-x">✕</text></view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 结果标题（随时间筛选变化） -->
+  <view class="result-head anim-fadeUp">
+    <text class="rh-main">{{timeTitle}}</text>
+    <text class="rh-sub">共 {{total}} 张</text>
+  </view>
+
+  <!-- 分组列表：按日分隔 -->
+  <block wx:if="{{groups.length > 0}}">
+    <view wx:for="{{groups}}" wx:key="key" class="group anim-fadeUp">
+      <view class="group-head">
+        <text class="gl">{{item.label}}</text>
+        <text class="gc">{{item.count}} 张</text>
+      </view>
+
+      <!-- 瀑布流双列：按卡片高度自适应分列，避免不同比例造成的空白 -->
+      <view class="grid {{swap ? 'swapB' : 'swapA'}}">
+        <view class="mcol">
+          <view
+            wx:for="{{item.left}}"
+            wx:key="id"
+            class="mcell"
+            data-card="{{item}}"
+            bindtap="onCardTap"
+          >
+            <view class="cell-inner">
+              <card-view card="{{item}}" mode="poster" />
+              <view class="cell-foot">
+                <text class="cf-loc" wx:if="{{item.locText}}">📍 {{item.locText}}</text>
+                <text class="cf-time" wx:elif="{{item.timeText}}">🕰 {{item.timeText}}</text>
+              </view>
+              <view
+                class="fav {{item.faved ? 'on' : ''}}"
+                catchtap="onToggleFav"
+                data-id="{{item.id}}"
+              >{{item.faved ? '♥' : '♡'}}</view>
+              <view wx:if="{{item.photos.length > 1}}" class="multi-badge">🖼 {{item.photos.length}}</view>
+            </view>
+          </view>
+        </view>
+
+        <view class="mcol">
+          <view
+            wx:for="{{item.right}}"
+            wx:key="id"
+            class="mcell"
+            data-card="{{item}}"
+            bindtap="onCardTap"
+          >
+            <view class="cell-inner">
+              <card-view card="{{item}}" mode="poster" />
+              <view class="cell-foot">
+                <text class="cf-loc" wx:if="{{item.locText}}">📍 {{item.locText}}</text>
+                <text class="cf-time" wx:elif="{{item.timeText}}">🕰 {{item.timeText}}</text>
+              </view>
+              <view
+                class="fav {{item.faved ? 'on' : ''}}"
+                catchtap="onToggleFav"
+                data-id="{{item.id}}"
+              >{{item.faved ? '♥' : '♡'}}</view>
+              <view wx:if="{{item.photos.length > 1}}" class="multi-badge">🖼 {{item.photos.length}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty">
+    <view class="ico">📷</view>
+    <view wx:if="{{!hasCards}}" class="txt">还没有卡片<br/>点下方导航中间的「做卡片」做第一张吧</view>
+    <view wx:else class="txt">当前筛选下没有卡片<br/>调整标签 / 时间 / 地点试试</view>
+  </view>
+  <!-- ======== 详细标签筛选（多选浮层） ======== -->
+  <view wx:if="{{showTagOpen}}" class="tf-mask" bindtap="toggleTagOpen" catchtouchmove="noop"></view>
+  <view class="tf-sheet {{showTagOpen ? 'show' : ''}}" catchtap="stopTagBubble" catchtouchmove="noop">
+    <view class="tf-head">
+      <view class="tf-title">标签筛选</view>
+      <view class="tf-sub">已选 {{tagSel.length}} 项 · 满足任一标签即显示</view>
+      <view class="tf-close" catchtap="toggleTagOpen">✕</view>
+    </view>
+    <scroll-view scroll-y class="tf-scroll" style="{{tagHStyle}}">
+      <view class="tf-scroll-body">
+        <view wx:if="{{tagOpenList.length === 0}}" class="tf-empty">还没有可用标签：先做几张带标签的卡片吧</view>
+        <view class="tf-grid">
+          <view
+            wx:for="{{tagOpenList}}"
+            wx:key="text"
+            class="tf-opt {{item.sel ? 'on' : ''}}"
+            data-text="{{item.text}}"
+            bindtap="toggleTagInList"
+          >
+            <text class="tf-em">{{item.emoji}}</text>
+            <text class="tf-tx">{{item.text}}</text>
+            <text class="tf-cn">{{item.n}}</text>
+            <text wx:if="{{item.sel}}" class="tf-ok">✓</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="tf-foot">
+      <view class="tf-btn ghost" bindtap="tagClearAll">重置</view>
+      <view class="tf-btn primary" bindtap="toggleTagOpen">完成（{{tagSel.length}}）</view>
+    </view>
+  </view>
+
+  <!-- ======== 详细地点筛选（多选浮层，与标签筛选一致） ======== -->
+  <view wx:if="{{showLocOpen}}" class="tf-mask" bindtap="toggleLocOpen" catchtouchmove="noop"></view>
+  <view class="tf-sheet loc-sheet {{showLocOpen ? 'show' : ''}}" catchtap="stopTagBubble" catchtouchmove="noop">
+    <view class="tf-head loc-head">
+      <view class="tf-title">地点筛选</view>
+      <view class="tf-sub">已选 {{locSel.length}} 项 · 满足任一地点即显示</view>
+      <view class="tf-close" catchtap="toggleLocOpen">✕</view>
+    </view>
+    <scroll-view scroll-y class="tf-scroll loc-scroll" style="{{locHStyle}}">
+      <view class="tf-scroll-body loc-scroll-body">
+        <view wx:if="{{locOpenList.length === 0}}" class="tf-empty">还没有地点标签：做卡片时填过地点就会出现在这里</view>
+        <view class="tf-grid">
+          <view
+            wx:for="{{locOpenList}}"
+            wx:key="text"
+            class="tf-opt {{item.sel ? 'on' : ''}}"
+            data-text="{{item.text}}"
+            bindtap="toggleLocInList"
+          >
+            <text class="tf-em">📍</text>
+            <text class="tf-tx">{{item.text}}</text>
+            <text class="tf-cn">{{item.n}}</text>
+            <text wx:if="{{item.sel}}" class="tf-ok">✓</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="tf-foot">
+      <view class="tf-btn ghost" bindtap="locClearAll">重置</view>
+      <view class="tf-btn primary" bindtap="toggleLocOpen">完成（{{locSel.length}}）</view>
+    </view>
+  </view>
+</view>

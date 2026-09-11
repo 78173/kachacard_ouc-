@@ -1,0 +1,208 @@
+/* ============================================================
+   card-view 样式
+   版式（照片比例）与背景风格分离：
+   - r-<ratio>  控制照片区占位比例
+   - s-<style>  控制配色 / 描边 / 装饰 / 说明栏观感
+   ============================================================ */
+
+.cv { width: 100%; box-sizing: border-box; transition: transform 0.15s ease; }
+.cv:active { transform: scale(0.985); }
+.frame { position: relative; }
+.deco { position: absolute; display: none; z-index: 2; }
+
+/* 自定义背景可读性遮罩与层级 */
+.cv-scrim {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.74);
+  z-index: 1;
+}
+.cv-scrim.dark { background: rgba(8, 14, 26, 0.58); }
+.cv .shot,
+.cv .caption { position: relative; z-index: 2; }
+
+/* ---------- 照片区：按比例占位（随宽度等比） ---------- */
+.shot {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%;
+  overflow: hidden;
+}
+.r-sq   .shot { padding-bottom: 100%; }
+.r-p45  .shot { padding-bottom: 125%; }
+.r-p34  .shot { padding-bottom: 133.3%; }
+.r-l169 .shot { padding-bottom: 56.25%; }
+.r-l43  .shot { padding-bottom: 75%; }
+.r-l32  .shot { padding-bottom: 66.7%; }
+
+.shot-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.swiper { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+
+.shot-badge {
+  position: absolute; right: 16rpx; bottom: 14rpx;
+  padding: 6rpx 18rpx; font-size: 20rpx; color: #fff;
+  background: rgba(15, 23, 42, 0.55); border-radius: 30rpx; letter-spacing: 1rpx;
+}
+.shot-brand {
+  position: absolute; left: 16rpx; bottom: 12rpx; font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.92); letter-spacing: 2rpx;
+  text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- 说明栏 ---------- */
+.caption { position: relative; z-index: 1; }
+.phrases { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx; }
+.phrase { display: inline-flex; align-items: center; font-size: 24rpx; }
+.phrase .pe { margin-right: 6rpx; }
+.phrase .pt { max-width: 520rpx; }
+.phrase.main { flex-basis: 100%; font-size: 34rpx; font-weight: 700; line-height: 1.5; }
+.meta { display: flex; flex-wrap: wrap; margin-top: 16rpx; }
+.meta .mi { font-size: 22rpx; margin-right: 26rpx; opacity: 0.85; }
+
+/* 海报模式：主标签一行，其余小标签逐行排列（不再左右分列） */
+.m-poster .frame { overflow: hidden; }
+.m-poster .caption { padding: 12rpx 14rpx 12rpx; }
+.m-poster .phrase.main { flex-basis: 100%; font-size: 27rpx; line-height: 1.5; }
+.m-poster .phrase.main .pt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.m-poster .phrase:not(.main) {
+  flex-basis: 100%;
+  max-width: 100%;
+  font-size: 20rpx;
+  padding: 2rpx 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  opacity: 0.85;
+}
+.m-poster .phrase:not(.main) .pt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.m-poster .phrase:not(.main)::before {
+  content: "· ";
+  opacity: 0.6;
+}
+.m-poster .phrase .pe { font-size: 18rpx; }
+.m-poster .meta { display: none; }
+.m-poster .shot-brand,
+.m-poster .film-meta { display: none; }
+
+/* ============================================================
+   风格 s-light 极简白
+   ============================================================ */
+.s-light .frame { background: #ffffff; border-radius: 24rpx; padding: 16rpx; box-shadow: 0 6rpx 26rpx rgba(15, 23, 42, 0.1); }
+.s-light .shot { border-radius: 14rpx; }
+.s-light .caption { padding: 24rpx 8rpx 6rpx; }
+.s-light .phrase.main { color: #1e293b; letter-spacing: 1rpx; }
+.s-light .phrase:not(.main) { color: #475569; background: #f1f5f9; padding: 6rpx 18rpx; border-radius: 30rpx; }
+.s-light .meta { color: #64748b; border-top: 2rpx dashed #e2e8f0; padding-top: 16rpx; }
+
+/* ============================================================
+   风格 s-paper 雾蓝信纸
+   ============================================================ */
+.s-paper .frame {
+  background: #f3f8fc; border-radius: 12rpx; padding: 20rpx 20rpx 26rpx;
+  box-shadow: 0 6rpx 22rpx rgba(51, 65, 85, 0.12);
+  background-image: repeating-linear-gradient(0deg, rgba(56, 130, 182, 0.05) 0rpx, rgba(56, 130, 182, 0.05) 1rpx, transparent 1rpx, transparent 46rpx);
+}
+.s-paper .deco-tape { display: block; }
+.s-paper .deco-tape {
+  top: -14rpx; left: 50%; width: 170rpx; height: 40rpx; margin-left: -85rpx;
+  background: rgba(147, 197, 253, 0.9); transform: rotate(-3deg);
+  border-radius: 4rpx; box-shadow: 0 2rpx 6rpx rgba(30, 64, 120, 0.16);
+}
+.s-paper .shot { border-radius: 6rpx; }
+.s-paper .caption { padding: 22rpx 6rpx 2rpx; }
+.s-paper .phrase.main { color: #1e3a5f; }
+.s-paper .phrase:not(.main) { color: #3b6ea5; border: 2rpx dashed #a7c8e8; padding: 4rpx 16rpx; border-radius: 6rpx; }
+.s-paper .meta { color: #5b84ad; }
+
+/* ============================================================
+   风格 s-polaroid 拍立得
+   ============================================================ */
+.s-polaroid .frame { background: #ffffff; border-radius: 10rpx; padding: 14rpx 14rpx 30rpx; box-shadow: 0 10rpx 26rpx rgba(15, 23, 42, 0.16); }
+.s-polaroid .shot { border-radius: 2rpx; box-shadow: 0 0 0 2rpx #e2e8f0; }
+.s-polaroid .caption { padding: 20rpx 4rpx 0; text-align: center; }
+.s-polaroid .phrases { justify-content: center; }
+.s-polaroid .phrase.main { justify-content: center; color: #334155; font-weight: 600; letter-spacing: 1rpx; }
+.s-polaroid .phrase:not(.main) { color: #7c8ca1; }
+.s-polaroid .phrase:not(.main)::before { content: "· "; }
+.s-polaroid .meta { justify-content: center; color: #94a3b8; }
+.s-polaroid .deco-tape { display: block; }
+.s-polaroid .deco-tape {
+  top: -10rpx; right: 40rpx; width: 130rpx; height: 34rpx;
+  background: rgba(186, 230, 253, 0.95); transform: rotate(5deg);
+  border-radius: 3rpx; box-shadow: 0 2rpx 6rpx rgba(30, 64, 120, 0.14);
+}
+.m-poster.s-polaroid .frame { transform: rotate(-1deg); }
+
+/* ============================================================
+   风格 s-film 胶片
+   ============================================================ */
+.s-film .frame { background: #111827; border-radius: 10rpx; box-shadow: 0 10rpx 26rpx rgba(15, 23, 42, 0.4); }
+.s-film .shot { border-radius: 2rpx; box-shadow: inset 0 0 0 2rpx #030712; }
+.s-film .caption { background: #0f172a; padding: 20rpx 20rpx 24rpx; }
+.s-film .phrase.main { color: #e2f3f0; font-weight: 600; letter-spacing: 2rpx; }
+.s-film .phrase:not(.main) { color: #7dd3c7; font-size: 20rpx; letter-spacing: 1rpx; border: 1rpx solid rgba(125, 211, 199, 0.45); padding: 4rpx 14rpx; border-radius: 20rpx; }
+.s-film .meta { color: #7dd3c7; }
+.film-meta {
+  position: absolute; right: 18rpx; top: 18rpx; color: #ccfbf1;
+  font-size: 20rpx; letter-spacing: 2rpx; background: rgba(15, 23, 42, 0.6);
+  padding: 6rpx 14rpx; border-radius: 6rpx;
+}
+.s-film .deco-sprocket { display: block; }
+.s-film .deco-sprocket {
+  top: 0; bottom: 0; width: 22rpx;
+  background-color: #0b1120;
+  background-image: radial-gradient(circle 5rpx at 50% 50%, #000 30%, transparent 62%);
+  background-size: 22rpx 46rpx; background-position: center;
+}
+.s-film .deco-sprocket.s-l { left: 4rpx; }
+.s-film .deco-sprocket.s-r { right: 4rpx; }
+.m-poster.s-film .deco-sprocket { display: none; }
+
+/* ============================================================
+   风格 s-dark 深空
+   ============================================================ */
+.s-dark .frame {
+  background: linear-gradient(160deg, #1e293b, #0f172a);
+  border: 1rpx solid rgba(94, 234, 212, 0.35);
+  border-radius: 18rpx; padding: 18rpx;
+  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.4);
+}
+.s-dark .shot { border-radius: 12rpx; box-shadow: inset 0 0 0 1rpx rgba(94, 234, 212, 0.3); }
+.s-dark .caption { padding: 24rpx 8rpx 8rpx; }
+.s-dark .phrase.main { color: #d8fbf5; font-weight: 300; letter-spacing: 3rpx; text-shadow: 0 0 22rpx rgba(94, 234, 212, 0.5); }
+.s-dark .phrase:not(.main) { color: #5eead4; border: 1rpx solid rgba(94, 234, 212, 0.4); padding: 4rpx 16rpx; border-radius: 24rpx; font-size: 21rpx; }
+.s-dark .meta { color: #5eead4; border-top: 1rpx solid rgba(94, 234, 212, 0.25); padding-top: 14rpx; }
+.s-dark .deco-corner { display: block; }
+.s-dark .deco-corner { width: 34rpx; height: 34rpx; border: 2rpx solid rgba(94, 234, 212, 0.55); }
+.s-dark .deco-corner.c-tl { top: 8rpx; left: 8rpx; border-right: none; border-bottom: none; }
+.s-dark .deco-corner.c-br { bottom: 8rpx; right: 8rpx; border-left: none; border-top: none; }
+
+/* ============================================================
+   风格 s-vivid 冷色撞色
+   ============================================================ */
+.s-vivid .frame {
+  background: linear-gradient(135deg, #22d3ee 0%, #818cf8 50%, #e879f9 100%);
+  border-radius: 14rpx; padding: 18rpx;
+  box-shadow: 0 12rpx 28rpx rgba(79, 70, 229, 0.25);
+}
+.s-vivid .shot {
+  border-radius: 6rpx;
+  box-shadow: 0 0 0 6rpx #ffffff, 0 14rpx 24rpx rgba(15, 23, 42, 0.22);
+  transform: rotate(-1deg);
+}
+.s-vivid .caption { padding: 24rpx 6rpx 6rpx; }
+.s-vivid .phrase.main { color: #ffffff; font-weight: 800; font-size: 38rpx; letter-spacing: 1rpx; text-shadow: 0 2rpx 0 rgba(15, 23, 42, 0.5); }
+.s-vivid .phrase:not(.main) { color: #0f172a; background: #a5f3fc; font-weight: 700; padding: 4rpx 16rpx; border-radius: 4rpx; box-shadow: 2rpx 2rpx 0 rgba(15, 23, 42, 0.35); }
+.s-vivid .meta { color: #ffffff; text-shadow: 0 1rpx 0 rgba(15, 23, 42, 0.4); }
+.s-vivid .deco-corner { display: block; }
+.s-vivid .deco-corner { width: 44rpx; height: 44rpx; background: #f0abfc; border-radius: 50%; box-shadow: 0 0 0 4rpx rgba(255, 255, 255, 0.9); }
+.s-vivid .deco-corner.c-tl { top: -4rpx; right: 10rpx; }
+.s-vivid .deco-corner.c-br { bottom: 130rpx; left: -6rpx; width: 26rpx; height: 26rpx; }
+.m-poster.s-vivid .frame { transform: rotate(1.2deg); }

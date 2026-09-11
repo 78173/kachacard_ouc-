@@ -1,0 +1,248 @@
+<view class="page create {{theme}} enter-a">
+
+  <!-- 顶部提示条 -->
+  <view class="create-intro anim-fadeUp">
+    <text class="ci-title">{{isEdit ? '✎ 编辑这张卡片' : '✦ 做一张卡片'}}</text>
+    <text class="ci-sub">标签在下方说明，还能加上时间与地点</text>
+  </view>
+
+  <!-- ============ ① 照片 ============ -->
+  <view class="sec anim-fadeUp anim-i1">
+    <view class="sec-head">
+      <text class="no">1</text>
+      <text class="st">主体照片</text>
+      <text class="hint">从相册上传  · 第 1 张为封面</text>
+    </view>
+
+    <view wx:if="{{photos.length > 0}}" class="photo-grid">
+      <view wx:for="{{photos}}" wx:key="*this" class="photo-cell" data-i="{{index}}" bindtap="previewPhoto">
+        <image class="p-img" src="{{item}}" mode="aspectFill" />
+        <view wx:if="{{index === 0}}" class="cover-tag">封面</view>
+        <view class="op op-cover" catchtap="setCover" data-i="{{index}}">⭐</view>
+        <view class="op op-del" catchtap="removePhoto" data-i="{{index}}">✕</view>
+      </view>
+      <view wx:if="{{photos.length < maxPhotos}}" class="photo-cell add" bindtap="addPhotos">
+        <view class="add-ico">＋</view>
+        <view class="add-txt">继续添加</view>
+      </view>
+    </view>
+    <view wx:else class="photo-add" bindtap="addPhotos">
+      <view class="pa-ico">📷</view>
+      <view class="pa-main">从相册选择照片</view>
+      <view class="pa-sub">可以一次选多张，稍后手动调整封面</view>
+    </view>
+
+    <view wx:if="{{photos.length > 1}}" class="photo-tools">
+      <view class="mini-chip {{reorderPhoto ? 'on' : ''}}" bindtap="togglePhotoOrder">{{reorderPhoto ? '✓ 完成' : '⇅ 拖动排序 / 设封面'}}</view>
+      <text wx:if="{{reorderPhoto}}" class="photo-tip">长按拖动排列，第 1 张就是封面</text>
+    </view>
+
+    <view wx:if="{{reorderPhoto}}" class="photo-sort-list">
+      <view
+        wx:for="{{photos}}"
+        wx:key="*this"
+        class="ps-row {{pCur === index ? 'drag' : ''}}"
+        data-i="{{index}}"
+        bindlongpress="photoRowStart"
+        bindtouchmove="photoRowMove"
+        bindtouchend="photoRowEnd"
+        bindtouchcancel="photoRowEnd"
+      >
+        <view class="ps-idx">{{index + 1}}</view>
+        <image class="ps-thumb" src="{{item}}" mode="aspectFill" />
+        <view class="ps-info">
+          <text wx:if="{{index === 0}}" class="cover-badge">👑 封面</text>
+          <text wx:else>拖动调整顺序</text>
+        </view>
+        <view class="ps-grip">≡</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ 实时预览 ============ -->
+  <view class="preview-wrap anim-fadeUp anim-i2">
+    <view class="preview-label"><text class="live-dot"></text>实时预览</view>
+    <view wx:if="{{previewCard}}">
+      <card-view card="{{previewCard}}" mode="full" />
+    </view>
+    <view wx:else class="preview-empty">
+      <text>选好照片后，这里会出现你的卡片</text>
+    </view>
+  </view>
+
+  <!-- ============ ② 版式（比例）与背景风格分开选 ============ -->
+  <view class="sec anim-fadeUp">
+    <view class="sec-head">
+      <text class="no">2</text>
+      <text class="st">版式与风格</text>
+      <text class="hint">{{layoutHint}}</text>
+    </view>
+
+    <view class="sub-label">照片比例（版式）</view>
+    <view class="ratio-chips">
+      <view
+        wx:for="{{ratios}}"
+        wx:key="id"
+        class="ratio-chip {{ratio === item.id ? 'on' : ''}}"
+        data-i="{{index}}"
+        bindtap="pickRatio"
+      >{{item.name}}</view>
+    </view>
+
+    <view class="sub-label">背景风格</view>
+    <scroll-view scroll-x class="tpl-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="tpl-row">
+        <view
+          wx:for="{{styles}}"
+          wx:key="id"
+          class="tpl-item {{style === item.id ? 'on' : ''}}"
+          data-i="{{index}}"
+          bindtap="pickStyle"
+        >
+          <view class="tpl-swatch" style="background: {{item.swatch}};">
+            <text wx:if="{{style === item.id}}" class="tpl-check">✓</text>
+          </view>
+          <view class="tpl-name">{{item.name}}</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="sub-label">自定义底色 / 背景图（可选）</view>
+    <view class="bg-grid">
+      <view
+        wx:for="{{bgSwatches}}"
+        wx:key="name"
+        class="bg-chip {{customBg && !customBg.img && customBg.v === item.css ? 'on' : ''}}"
+        style="background: {{item.css}};"
+        data-i="{{index}}"
+        bindtap="pickBg"
+      ></view>
+    </view>
+    <view class="bg-actions">
+      <view class="mini-chip" bindtap="chooseBgImage">{{customBg && customBg.img ? '🖼 更换背景图' : '🖼 上传背景图'}}</view>
+      <view wx:if="{{customBg}}" class="mini-chip" bindtap="clearBg">清除自定义</view>
+    </view>
+  </view>
+
+  <!-- ============ ③ 标签 ============ -->
+  <view class="sec anim-fadeUp">
+    <view class="sec-head">
+      <text class="no">3</text>
+      <text class="st">标签</text>
+      <text class="hint">第一句是卡片下方的大标题</text>
+    </view>
+
+    <view wx:if="{{phrases.length > 0}}" class="picked-tags">
+      <view wx:for="{{phrases}}" wx:key="id" class="picked-tag">
+        {{item.emoji}} {{item.text}}
+      </view>
+    </view>
+
+    <view class="phrase-tool">
+      <view class="phrase-manage {{managePhrase ? 'on' : ''}}" bindtap="toggleManage">
+        {{managePhrase ? '完成管理' : '⚙ 管理标签'}}
+      </view>
+      <text wx:if="{{managePhrase}}" class="phrase-tip">点标签上的 × 可删除（内置与自建都可删）</text>
+    </view>
+
+    <view class="chips phrase-chips">
+      <view wx:for="{{phraseChips}}" wx:key="id" class="chip-wrap">
+        <view
+          class="chip {{item.on ? 'on' : ''}}"
+          data-i="{{index}}"
+           bindtap="onPickPhrase"
+        >{{item.emoji}} {{item.text}}</view>
+        <view
+          wx:if="{{managePhrase}}"
+          class="ph-del"
+          data-i="{{index}}"
+          catchtap="removePhrase"
+        >✕</view>
+      </view>
+    </view>
+
+    <view class="chip-add" bindtap="addCustomPhrase">＋ 新增一条标签</view>
+  </view>
+
+  <!-- ============ ④ 时间 / 地点 ============ -->
+  <view class="sec anim-fadeUp">
+    <view class="sec-head">
+      <text class="no">4</text>
+      <text class="st">时间 · 地点</text>
+      <text class="hint">作为卡片上的基础元素，可留空</text>
+    </view>
+
+    <view class="field">
+      <text class="field-label">🕰 时间</text>
+      <view class="field-presets">
+        <view
+          wx:for="{{timePresets}}"
+          wx:key="label"
+          class="mini-chip"
+          data-v="{{item.value}}"
+          bindtap="onTimePreset"
+        >{{item.label}}</view>
+      </view>
+      <input
+        class="field-input"
+        value="{{timeText}}"
+        placeholder="如 2026.09.09 / 傍晚 / 下雨的那天"
+        placeholder-class="ph"
+        bindinput="onTimeInput"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">📍 地点</text>
+      <view class="field-inline">
+        <input
+          class="field-input flex-1"
+          value="{{locText}}"
+          placeholder="如 杭州 · 西湖 / 家里的阳台"
+          placeholder-class="ph"
+          bindinput="onLocInput"
+        />
+        <view class="btn-locate" bindtap="chooseLocation">定位</view>
+      </view>
+      <view class="place-chips">
+        <view
+          wx:for="{{placePresets}}"
+          wx:key="*this"
+          class="mini-chip"
+          data-v="{{item}}"
+          bindtap="onPlacePreset"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ ⑤ 预留长文本 ============ -->
+  <view class="sec anim-fadeUp">
+    <view class="sec-head">
+      <text class="no">5</text>
+      <text class="st">给 TA 留一段话</text>
+      <text class="hint">展示在详情页，引导收到卡片的人留言</text>
+    </view>
+    <view class="reserved-box">
+      <textarea
+        class="reserved-area"
+        value="{{reservedText}}"
+        maxlength="{{reservedMax}}"
+        auto-height
+        placeholder="{{reservedDefault}}"
+        placeholder-class="ph"
+        bindinput="onReservedInput"
+      ></textarea>
+      <view class="reserved-foot">
+        <view class="mini-chip" bindtap="onReservedFill">用示例</view>
+        <view class="mini-chip" bindtap="onReservedClear">清空</view>
+        <view class="counter">{{reservedLen}}/{{reservedMax}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部保存栏 -->
+  <view class="save-bar anim-fadeUp">
+    <button class="save-btn" bindtap="save">{{isEdit ? '保存修改' : '完成 · 去看看'}}</button>
+  </view>
+</view>

@@ -1,0 +1,25 @@
+<view wx:if="{{!hidden}}" class="tbb {{dark ? 'dark' : ''}}">
+  <!-- 左：首页 -->
+  <view class="tbb-item {{selected === 0 ? 'on' : ''}}" data-path="/pages/index/index" data-index="0" bindtap="onSwitch">
+    <view class="tbb-ico">
+      <image class="tab-img" src="{{selected === 0 ? '/img/home.png' : '/img/home (1).png'}}" />
+    </view>
+    <view class="tbb-label">首页</view>
+  </view>
+
+  <!-- 中：做卡片（悬浮按钮） -->
+  <view class="tbb-mid" bindtap="onMakeCard">
+    <view class="mid-btn">
+      <view class="mid-plus">＋</view>
+      <view class="mid-txt">做卡片</view>
+    </view>
+  </view>
+
+  <!-- 右：我的 -->
+  <view class="tbb-item {{selected === 1 ? 'on' : ''}}" data-path="/pages/profile/profile" data-index="1" bindtap="onSwitch">
+    <view class="tbb-ico">
+      <image class="tab-img" src="{{selected === 1 ? '/img/我的.png' : '/img/我的 (1).png'}}" />
+    </view>
+    <view class="tbb-label">我的</view>
+  </view>
+</view>

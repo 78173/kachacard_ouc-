@@ -1,0 +1,99 @@
+<view class="page detail {{theme}} enter-a" wx:if="{{card}}">
+
+  <!-- 卡片主体 -->
+  <view class="hero anim-fadeUp">
+    <card-view card="{{card}}" mode="full" autoplay="{{autoPlay}}" />
+    <view wx:if="{{card.photos.length > 1}}" class="auto-btn {{autoPlay ? 'on' : ''}}" bindtap="toggleAutoPlay">
+      {{autoPlay ? '❚❚' : '▶'}}
+    </view>
+  </view>
+
+  <!-- 首屏操作：收藏 + 去评论 -->
+  <view class="hero-actions anim-fadeUp anim-i1">
+    <view
+      class="hact like {{liked ? 'on' : ''}} {{likedAnim ? 'heart-active' : ''}}"
+      bindtap="toggleFav"
+    >{{liked ? '♥ 已收藏' : '♡ 收藏'}}</view>
+    <view class="hact primary" bindtap="goComment">💬 去评论</view>
+    <view class="hact icon {{exporting ? 'busy' : ''}}" bindtap="exportCard">↗</view>
+  </view>
+  <view class="scroll-hint anim-fadeUp anim-i2" bindtap="goComment">下滑查看完整故事与留言 ▾</view>
+
+  <!-- ↓↓↓ 下滑后才看到的信息 ↓↓↓ -->
+  <!-- 创作者 + 元信息 -->
+  <view class="maker anim-fadeUp">
+    <view class="maker-ava" wx:if="{{owner && owner.avatar}}">
+      <image class="m-ava-img" src="{{owner.avatar}}" mode="aspectFill" />
+    </view>
+    <view class="maker-ava maker-ava-text" wx:else style="background: {{owner.color}};">{{owner.ini}}</view>
+    <view class="maker-info">
+      <view class="maker-name">{{owner.name}} · 的卡片</view>
+      <view class="maker-sub">咔嚓于 {{createdDay}}</view>
+    </view>
+  </view>
+
+  <!-- 编辑 / 删除 / 仿照（次要操作） -->
+  <view class="acts anim-fadeUp">
+    <view wx:if="{{isOwner}}" class="act ghost" bindtap="goEdit">✎ 编辑</view>
+    <view wx:else class="act ghost" bindtap="goRemake">♻ 仿照一张</view>
+    <view wx:if="{{isOwner}}" class="act danger" bindtap="onDelete">🗑 删除</view>
+  </view>
+
+  <!-- 创作者预留长文本（详情页主内容） -->
+  <view class="note anim-fadeUp">
+    <view class="note-head">
+      <text class="note-t">💌 来自创作者的话</text>
+      <text class="note-badge">欢迎留言</text>
+    </view>
+    <view class="note-body">{{card.reservedText || '看到这张卡片了吗？在下方留下你想说的话吧。'}}</view>
+  </view>
+
+  <!-- 评论输入 -->
+  <view id="comment-sec" class="compose anim-fadeUp">
+    <view class="compose-title">💬 评论 · 给 {{owner.name}}</view>
+    <textarea
+      class="compose-area"
+      value="{{msgText}}"
+      maxlength="{{msgMax}}"
+      placeholder="写下想对 TA 说的长一点的话……（最多 {{msgMax}} 字）"
+      placeholder-class="ph"
+      bindinput="onMsgInput"
+    ></textarea>
+    <view class="compose-foot">
+      <view class="compose-len">{{msgLen}}/{{msgMax}}</view>
+      <view class="send-btn" bindtap="sendMsg">发送评论</view>
+    </view>
+  </view>
+
+  <!-- 留言列表 -->
+  <view class="msgs anim-fadeUp">
+    <view class="msgs-head">
+      <text class="msgs-t">💬 大家的留言</text>
+      <text class="msgs-count">{{msgs.length}}</text>
+    </view>
+
+    <view wx:if="{{msgs.length === 0}}" class="msg-empty">
+      还没有留言，来当第一个说话的人吧
+    </view>
+
+    <view wx:for="{{msgs}}" wx:key="id" class="msg-row {{item.uid === user.uid ? 'mine' : ''}}">
+      <view class="msg-ava" wx:if="{{item.avatar}}">
+        <image class="m-ava-img" src="{{item.avatar}}" mode="aspectFill" />
+      </view>
+      <view class="msg-ava" wx:else style="background: {{item.avatarColor}};">{{item.ini}}</view>
+
+      <view class="msg-main">
+        <view class="msg-top">
+          <text class="msg-name">{{item.uid === user.uid ? '我' : item.name}}</text>
+          <text class="msg-time">{{item.timeLabel}}</text>
+        </view>
+        <view class="msg-bubble">{{item.content}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer-gap"></view>
+
+  <!-- 导出用的离屏画布（Canvas 2D） -->
+  <canvas type="2d" id="exportCanvas" class="export-canvas" style="{{exportStyle}}"></canvas>
+</view>
