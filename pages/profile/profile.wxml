@@ -12,12 +12,19 @@
     bindtouchcancel="onTileEnd"
     bindtap="onTileTap"
   >
-    <image class="ct-img" src="{{item.card.photos[0]}}" mode="aspectFill" style="{{item.imgStyle}}" />
-    <view class="ct-info">
-      <view class="ct-main">{{item.main}}</view>
-      <view wx:for="{{item.others}}" wx:for-item="o" wx:key="*this" class="ct-line">· {{o}}</view>
-      <view wx:if="{{item.meta}}" class="ct-meta">{{item.meta}}</view>
+    <view class="ct-frame">
+      <view class="ct-photo">
+        <image class="ct-img" src="{{item.card.photos[0]}}" mode="aspectFill" style="{{item.imgStyle}}" />
+        <view wx:if="{{item.card.photos.length > 1}}" class="ct-count">{{item.card.photos.length}} 张</view>
+      </view>
+      <view class="ct-info">
+        <view class="ct-main">{{item.main}}</view>
+        <view wx:for="{{item.others}}" wx:for-item="o" wx:key="*this" class="ct-line">· {{o}}</view>
+        <view wx:if="{{item.meta}}" class="ct-meta">{{item.meta}}</view>
+      </view>
     </view>
+    <view wx:if="{{item.size === 'wide'}}" class="ct-tape"></view>
+    <view wx:else class="ct-pin">📌</view>
     <view wx:if="{{collageEdit}}" class="ct-size" catchtap="onTileSize" data-i="{{index}}">{{item.size === 'wide' ? '⤡' : '⤢'}}</view>
   </view>
 </template>
@@ -39,9 +46,12 @@
       <view class="me-id">ID · {{user.uid}}</view>
       <view class="me-tag-row">
         <view class="me-tag" bindtap="toggleAccounts">⇄ 切换 / 管理账号 · {{accounts.length}}</view>
-        <view class="me-tag" bindtap="onToggleTheme">{{theme === 'dark' ? '☀️ 浅色模式' : '🌙 深色模式'}}</view>
+        <view class="me-tag" bindtap="onToggleTheme">
+  <image class="me-tag-icon" src="{{theme === 'dark' ? '/img/隐藏.png' : '/img/显示.png'}}" mode="aspectFit" />
+  <text>{{theme === 'dark' ? '深色模式' : '浅色模式'}}</text>
+</view>
       </view>
-      <view class="me-scope">当前使用「{{user.nickname}}」 · 卡片 / 收藏 / 标签按账号区分</view>
+      <view class="me-scope">当前使用「{{user.nickname}}」</view>
     </view>
   </view>
 
@@ -122,6 +132,7 @@
     <view class="list-tool anim-fadeUp anim-i2">
       <text class="lt-hint">{{collageEdit ? '按住卡片拖动摆放，松手保存' : '我的收藏 · 拼图墙'}}</text>
       <view class="lt-tools">
+        <view wx:if="{{favList.length > 1}}" class="lt-sort" bindtap="beautifyCollage">🎨 美化</view>
         <view wx:if="{{favList.length > 1}}" class="lt-sort" bindtap="shuffleFav">🎲 洗牌</view>
         <view wx:if="{{favList.length > 0}}" class="lt-sort {{collageEdit ? 'on' : ''}}" bindtap="toggleCollageEdit">{{collageEdit ? '完成' : '✥ 编辑拼图'}}</view>
       </view>

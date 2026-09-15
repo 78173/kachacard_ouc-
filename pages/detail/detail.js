@@ -31,7 +31,13 @@ Page({
     autoPlay: true,
     theme: '',
     exportStyle: 'width:750px;height:900px;',
-    exporting: false
+    exporting: false,
+    // 导出图片选择
+    showPick: false,
+    pickItems: [],
+    pickCount: 0,
+    pickLabel: '保存选中原图',
+    pickH: 300
   },
 
   _applyTheme() {
@@ -43,6 +49,13 @@ Page({
   toggleAutoPlay() {
     this.setData({ autoPlay: !this.data.autoPlay });
   },
+
+  /** 手指触碰图片：立即暂停自动播放，交还手动滑动 */
+  onSwiperTouch() {
+    if (this.data.autoPlay) this.setData({ autoPlay: false });
+  },
+
+  noop() { /* 拦截 touchmove，避免底层页面跟随滚动 */ },
 
   /* 下滑定位到评论区 */
   goComment() {
@@ -60,6 +73,9 @@ Page({
   exportCard() {
     const card = this.data.card;
     if (!card || this.data.exporting) return;
+    const picked = (this._picked && this._picked.length)
+      ? this._picked
+      : (card.photos || []);
     const pct = ratioPctOf(card);
     const H = exporter.measureHeight(pct);
     this.setData({ exporting: true, exportStyle: 'width:750px;height:' + H + 'px;' }, () => {
@@ -71,7 +87,7 @@ Page({
             wx.showToast({ title: '导出失败', icon: 'none' });
             return;
           }
-          exporter.exportCard(node, card, pct).then((path) => {
+          exporter.exportCard(node, card, pct, picked).then((path) => {
             this._shareImage = path;
             this.setData({ exporting: false });
             this._offerShare(path);
@@ -84,6 +100,81 @@ Page({
     });
   },
 
+  /* ---------- 选择要导出的图片 ---------- */
+  openPicker() {
+    const card = this.data.card;
+    if (!card || !(card.photos || []).length) return;
+    const items = card.photos.map(src => ({ src, sel: true }));
+    let h = 300;
+    try {
+      const win = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
+      h = Math.round((win.windowHeight || 700) * 0.4);
+    } catch (e) { /* ignore */ }
+    this.setData({
+      showPick: true,
+      pickItems: items,
+      pickCount: items.length,
+      pickLabel: '保存选中原图（' + items.length + '）',
+      pickH: h
+    });
+  },
+
+  closePick() {
+    this.setData({ showPick: false });
+  },
+
+  _updatePick(items, extra) {
+    const n = items.filter(i => i.sel).length;
+    this.setData(Object.assign({
+      pickItems: items,
+      pickCount: n,
+      pickLabel: n ? '保存选中原图（' + n + '）' : '保存选中原图'
+    }, extra || {}));
+  },
+
+  togglePick(e) {
+    const i = Number(e.currentTarget.dataset.i);
+    const items = this.data.pickItems.slice();
+    items[i] = Object.assign({}, items[i], { sel: !items[i].sel });
+    this._updatePick(items);
+  },
+
+  pickAll() {
+    this._updatePick(this.data.pickItems.map(i => Object.assign({}, i, { sel: true })));
+  },
+
+  pickNone() {
+    this._updatePick(this.data.pickItems.map(i => Object.assign({}, i, { sel: false })));
+  },
+
+  pickFirstOnly() {
+    this._updatePick(this.data.pickItems.map((i, idx) => Object.assign({}, i, { sel: idx === 0 })));
+  },
+
+  _pickedPaths() {
+    return (this.data.pickItems || []).filter(i => i.sel).map(i => i.src);
+  },
+
+  savePickedOriginals() {
+    const paths = this._pickedPaths();
+    if (!paths.length) {
+      wx.showToast({ title: '请至少选择一张', icon: 'none' });
+      return;
+    }
+    this.setData({ showPick: false });
+    this._saveAllPhotos(paths);
+  },
+
+  makeCardImage() {
+    const paths = this._pickedPaths();
+    if (!paths.length) {
+      wx.showToast({ title: '请至少选择一张', icon: 'none' });
+      return;
+    }
+    this._picked = paths;              // 只选 1 张时，效果等同原来的单张导出
+    this.setData({ showPick: false }, () => this.exportCard());
+  },
+
   _offerShare(path) {
     wx.showActionSheet({
       itemList: ['保存到相册', '发送给朋友'],
@@ -92,6 +183,26 @@ Page({
         else if (res.tapIndex === 1) this._shareImageMenu(path);
       },
       fail: () => {}
+    });
+  },
+
+  /** 逐张保存原始照片 */
+  _saveAllPhotos(photos) {
+    let done = 0;
+    let ok = 0;
+    wx.showLoading({ title: '保存中…', mask: true });
+    photos.forEach((p) => {
+      wx.saveImageToPhotosAlbum({
+        filePath: p,
+        success: () => { ok += 1; },
+        complete: () => {
+          done += 1;
+          if (done === photos.length) {
+            wx.hideLoading();
+            wx.showToast({ title: '已保存 ' + ok + ' 张原图', icon: 'none' });
+          }
+        }
+      });
     });
   },
 

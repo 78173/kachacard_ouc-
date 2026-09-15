@@ -64,7 +64,8 @@ Page({
     const photo = w * pct / 100;
     const n = Math.max(0, Math.min((item.card.phrases || []).length, 3) - 1);
     const meta = item.card.locText || item.card.timeText ? 24 : 0;
-    const info = (20 + 40 + n * 26 + meta) * k;
+    // 相框上下内边距(10) + 说明区上内边距(10) + 相框下内边距(14) = 34rpx
+    const info = (34 + 40 + n * 26 + meta) * k;
     return { w, photo, h: photo + info };
   },
 
@@ -118,10 +119,13 @@ Page({
     this._sizes = store.getFavSizes(uid) || {};
     const collage = (list || []).map((card) => {
       const h = this._hash(card.id);
+      const pct = this._ratioPct(card);
+      // 自动版式：竖图/方图半宽，横图通栏——间距与节奏更自然
+      const auto = pct <= 82 ? 'wide' : 'half';
       return {
         id: card.id,
         card,
-        size: this._sizes[card.id] || 'half',
+        size: this._sizes[card.id] || auto,
         angle: ((h % 7) - 3) * 0.8,
         dx: 0,
         dy: 0
@@ -152,6 +156,20 @@ Page({
       const ids = (this.data.collage || []).map(c => c.id);
       store.setFavOrder(this.data.user.uid, ids);
     }
+  },
+
+  /** 一键美化：恢复“竖图半宽 / 横图通栏”的自动版式 */
+  beautifyCollage() {
+    if (!this.data.collage.length) return;
+    const uid = this.data.user.uid;
+    this._sizes = {};
+    store.setFavSizes(uid, {});
+    const list = this.data.collage.map((it) => {
+      const pct = this._ratioPct(it.card);
+      return Object.assign({}, it, { size: pct <= 82 ? 'wide' : 'half', dx: 0, dy: 0 });
+    });
+    this.setData({ collage: list }, () => this._packCollage());
+    wx.showToast({ title: '已重新美化排版 ✨', icon: 'none' });
   },
 
   shuffleFav() {

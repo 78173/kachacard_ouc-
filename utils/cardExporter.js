@@ -58,6 +58,29 @@ function drawCover(ctx, img, x, y, w, h, r) {
   ctx.restore();
 }
 
+/** 多张照片时：在照片区内按网格排布（全部照片都进图） */
+function drawPhotoGrid(ctx, imgs, x, y, w, h) {
+  const n = imgs.length;
+  if (n <= 1) {
+    drawCover(ctx, imgs[0], x, y, w, h, 20);
+    return;
+  }
+  let cols;
+  if (n === 2) cols = 2;
+  else if (n === 3) cols = 3;
+  else if (n === 4) cols = 2;
+  else cols = 3;
+  const gap = 8;
+  const rows = Math.ceil(n / cols);
+  const cw = (w - (cols - 1) * gap) / cols;
+  const ch = (h - (rows - 1) * gap) / rows;
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    drawCover(ctx, imgs[i], x + c * (cw + gap), y + r * (ch + gap), cw, ch, 12);
+  }
+}
+
 function measureHeight(ratioPct) {
   const photoH = Math.round(W * (ratioPct || 100) / 100);
   return photoH + INFO_H;
@@ -67,10 +90,12 @@ function measureHeight(ratioPct) {
  * 渲染并导出图片
  * @returns Promise<string> 临时图片路径
  */
-function exportCard(canvas, card, ratioPct) {
+function exportCard(canvas, card, ratioPct, pickedPhotos) {
   return new Promise((resolve, reject) => {
-    const photo = (card.photos && card.photos[0]) || '';
-    if (!photo) return reject(new Error('no photo'));
+    // pickedPhotos 为用户自选的图片；不传则默认全部（最多 9 张）
+    const source = (pickedPhotos && pickedPhotos.length) ? pickedPhotos : (card.photos || []);
+    const photos = source.slice(0, 9);
+    if (!photos.length) return reject(new Error('no photo'));
 
     const photoH = Math.round(W * (ratioPct || 100) / 100);
     const H = photoH + INFO_H;
@@ -89,8 +114,11 @@ function exportCard(canvas, card, ratioPct) {
     ctx.fillStyle = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)';
     ctx.fillRect(0, photoH, W, INFO_H);
 
-    loadImage(canvas, photo).then((img) => {
-      drawCover(ctx, img, PAD, PAD, W - PAD * 2, photoH - PAD * 2, 20);
+    // 逐张加载（失败的就跳过），再统一排版
+    Promise.all(photos.map(p => loadImage(canvas, p).catch(() => null))).then((loaded) => {
+      const imgs = loaded.filter(Boolean);
+      if (!imgs.length) return reject(new Error('image load failed'));
+      drawPhotoGrid(ctx, imgs, PAD, PAD, W - PAD * 2, photoH - PAD * 2);
 
       const ink = dark ? '#eaf6ff' : '#20303c';
       const sub = dark ? 'rgba(214,240,255,0.75)' : 'rgba(40,60,75,0.62)';

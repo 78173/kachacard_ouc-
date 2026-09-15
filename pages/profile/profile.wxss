@@ -487,12 +487,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  background: var(--surface);
-  border-radius: 22rpx;
-  overflow: hidden;
-  box-shadow:
-    0 14rpx 28rpx -12rpx rgba(15, 23, 42, 0.3),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  background: transparent;
   transition:
     left 0.26s cubic-bezier(0.22, 0.9, 0.28, 1),
     top 0.26s cubic-bezier(0.22, 0.9, 0.28, 1),
@@ -501,14 +496,44 @@
     transform 0.26s cubic-bezier(0.22, 0.9, 0.28, 1);
   will-change: left, top, transform;
 }
-.ctile.dragging {
-  transition: none;
-  box-shadow: 0 26rpx 48rpx -16rpx rgba(15, 23, 42, 0.45);
+.ctile.dragging { transition: none; }
+
+/* 相纸白框：照片居上，标签说明在下 */
+.ct-frame {
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--surface);
+  border-radius: 24rpx;
+  padding: 10rpx 10rpx 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 16rpx 30rpx -14rpx rgba(15, 23, 42, 0.34),
+    0 2rpx 6rpx rgba(15, 23, 42, 0.05);
 }
-.ct-img { width: 100%; display: block; background: var(--line); }
-.ct-info { padding: 8rpx 16rpx 12rpx; }
+.page.dark .ct-frame { border-color: rgba(255, 255, 255, 0.06); }
+.ctile.dragging .ct-frame {
+  box-shadow: 0 30rpx 54rpx -18rpx rgba(15, 23, 42, 0.5);
+}
+.ct-photo {
+  position: relative;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: var(--line);
+}
+.ct-img { width: 100%; display: block; }
+.ct-count {
+  position: absolute;
+  right: 10rpx;
+  bottom: 10rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  background: rgba(15, 23, 42, 0.5);
+  color: #ffffff;
+  font-size: 18rpx;
+}
+.ct-info { padding: 10rpx 8rpx 0; }
 .ct-main {
-  font-size: 32rpx;
+  font-size: 30rpx;
   line-height: 40rpx;
   font-weight: 700;
   color: var(--ink);
@@ -533,6 +558,27 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* 装饰：通栏图贴一条胶带，半宽图钉一枚图钉 */
+.ct-tape {
+  position: absolute;
+  left: 50%;
+  top: -12rpx;
+  width: 132rpx;
+  height: 32rpx;
+  margin-left: -66rpx;
+  background: rgba(251, 199, 90, 0.85);
+  border-radius: 4rpx;
+  transform: rotate(-3deg);
+  box-shadow: 0 2rpx 8rpx rgba(15, 23, 42, 0.18);
+}
+.ct-pin {
+  position: absolute;
+  left: 12rpx;
+  top: -18rpx;
+  font-size: 26rpx;
+  transform: rotate(-12deg);
+}
 .ct-size {
   position: absolute;
   right: 12rpx;
@@ -547,4 +593,14 @@
   font-size: 24rpx;
   z-index: 3;
   box-shadow: 0 4rpx 10rpx rgba(15, 23, 42, 0.3);
+}
+.me-tag {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+}
+
+.me-tag-icon {
+  width: 32rpx;  /* 根据你的需求调整大小 */
+  height: 32rpx;
+  margin-right: 8rpx; /* 图片和文字之间的间距 */
 }

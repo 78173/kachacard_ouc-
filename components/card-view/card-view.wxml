@@ -24,6 +24,7 @@
         duration="500"
         current="{{current}}"
         bindchange="onSwiperChange"
+        bindtouchstart="onSwiperTouch"
       >
         <swiper-item wx:for="{{card.photos}}" wx:key="index">
           <image class="shot-img" src="{{item}}" mode="aspectFill" lazy-load="{{true}}" />

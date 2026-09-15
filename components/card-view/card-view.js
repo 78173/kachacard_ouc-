@@ -85,6 +85,11 @@ Component({
       this.setData({ current: e.detail.current });
     },
 
+    /** 手指按下 swiper：通知页面“用户接管”，可据此暂停自动播放 */
+    onSwiperTouch() {
+      this.triggerEvent('swipertouch');
+    },
+
     onTapCard() {
       this.triggerEvent('cardtap', { card: this.properties.card });
     }

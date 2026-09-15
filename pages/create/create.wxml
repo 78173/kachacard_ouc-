@@ -142,7 +142,7 @@
       <view class="phrase-manage {{managePhrase ? 'on' : ''}}" bindtap="toggleManage">
         {{managePhrase ? '完成管理' : '⚙ 管理标签'}}
       </view>
-      <text wx:if="{{managePhrase}}" class="phrase-tip">点标签上的 × 可删除（内置与自建都可删）</text>
+      <text wx:if="{{managePhrase}}" class="phrase-tip">点标签上的 × 可删除</text>
     </view>
 
     <view class="chips phrase-chips">

@@ -274,6 +274,84 @@
   z-index: -1;
   pointer-events: none;
 }
+
+/* ============ 选择要导出的图片 ============ */
+.pk-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 900;
+  animation: fadeIn 0.2s ease both;
+}
+.pk-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 950;
+  background: var(--surface);
+  border-radius: 30rpx 30rpx 0 0;
+  padding: 26rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -8rpx 40rpx rgba(15, 23, 42, 0.2);
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.pk-sheet.show { transform: translateY(0); }
+.pk-head { position: relative; }
+.pk-title { font-size: 32rpx; font-weight: 800; color: var(--accent); }
+.pk-sub { margin-top: 6rpx; font-size: 21rpx; color: var(--sub); }
+.pk-close {
+  position: absolute;
+  right: 0; top: 0;
+  width: 52rpx; height: 52rpx; line-height: 52rpx; text-align: center;
+  background: var(--line); color: var(--sub);
+  border-radius: 50%; font-size: 22rpx;
+}
+.pk-quick { display: flex; gap: 26rpx; margin: 16rpx 0 8rpx; }
+.pk-link { font-size: 22rpx; color: var(--accent); }
+.pk-scroll { margin-top: 8rpx; }
+.pk-grid { display: flex; flex-wrap: wrap; gap: 14rpx; padding-bottom: 8rpx; }
+.pk-item {
+  position: relative;
+  width: 31.5%;
+  border-radius: 16rpx;
+  overflow: hidden;
+  border: 4rpx solid transparent;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.pk-item.on { border-color: var(--accent); transform: scale(0.98); }
+.pk-img { width: 100%; height: 150rpx; display: block; background: var(--line); }
+.pk-num {
+  position: absolute;
+  left: 8rpx; bottom: 8rpx;
+  min-width: 32rpx;
+  text-align: center;
+  padding: 0 8rpx;
+  border-radius: 18rpx;
+  background: rgba(15, 23, 42, 0.55);
+  color: #fff;
+  font-size: 18rpx;
+}
+.pk-check {
+  position: absolute;
+  right: 8rpx; top: 8rpx;
+  width: 38rpx; height: 38rpx; line-height: 38rpx; text-align: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 22rpx;
+  box-shadow: 0 2rpx 8rpx rgba(15, 23, 42, 0.3);
+}
+.pk-foot { display: flex; gap: 18rpx; margin-top: 18rpx; }
+.pk-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 46rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.pk-btn.primary { background: var(--accent); color: var(--surface); }
+.pk-btn.ghost { background: var(--line); color: var(--ink); }
 .scroll-hint {
   margin: 18rpx 0 8rpx;
   text-align: center;

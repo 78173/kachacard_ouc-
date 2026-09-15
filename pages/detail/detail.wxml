@@ -2,7 +2,12 @@
 
   <!-- 卡片主体 -->
   <view class="hero anim-fadeUp">
-    <card-view card="{{card}}" mode="full" autoplay="{{autoPlay}}" />
+    <card-view
+      card="{{card}}"
+      mode="full"
+      autoplay="{{autoPlay}}"
+      bind:swipertouch="onSwiperTouch"
+    />
     <view wx:if="{{card.photos.length > 1}}" class="auto-btn {{autoPlay ? 'on' : ''}}" bindtap="toggleAutoPlay">
       {{autoPlay ? '❚❚' : '▶'}}
     </view>
@@ -15,7 +20,7 @@
       bindtap="toggleFav"
     >{{liked ? '♥ 已收藏' : '♡ 收藏'}}</view>
     <view class="hact primary" bindtap="goComment">💬 去评论</view>
-    <view class="hact icon {{exporting ? 'busy' : ''}}" bindtap="exportCard">↗</view>
+    <view class="hact icon {{exporting ? 'busy' : ''}}" bindtap="openPicker">↗</view>
   </view>
   <view class="scroll-hint anim-fadeUp anim-i2" bindtap="goComment">下滑查看完整故事与留言 ▾</view>
 
@@ -93,6 +98,40 @@
   </view>
 
   <view class="footer-gap"></view>
+
+  <!-- ======== 选择要导出的图片（可多选） ======== -->
+  <view wx:if="{{showPick}}" class="pk-mask" bindtap="closePick" catchtouchmove="noop"></view>
+  <view class="pk-sheet {{showPick ? 'show' : ''}}" catchtap="noop" catchtouchmove="noop">
+    <view class="pk-head">
+      <view class="pk-title">选择要导出的图片</view>
+      <view class="pk-sub">已选 {{pickCount}} / {{pickItems.length}} 张 </view>
+      <view class="pk-close" catchtap="closePick">✕</view>
+    </view>
+    <view class="pk-quick">
+      <view class="pk-link" bindtap="pickAll">全选</view>
+      <view class="pk-link" bindtap="pickFirstOnly">只选第 1 张</view>
+      <view class="pk-link" bindtap="pickNone">清空</view>
+    </view>
+    <scroll-view scroll-y class="pk-scroll" style="height:{{pickH}}px;">
+      <view class="pk-grid">
+        <view
+          wx:for="{{pickItems}}"
+          wx:key="src"
+          class="pk-item {{item.sel ? 'on' : ''}}"
+          data-i="{{index}}"
+          bindtap="togglePick"
+        >
+          <image class="pk-img" src="{{item.src}}" mode="aspectFill" />
+          <view class="pk-num">{{index + 1}}</view>
+          <view wx:if="{{item.sel}}" class="pk-check">✓</view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="pk-foot">
+      <view class="pk-btn ghost" bindtap="savePickedOriginals">{{pickLabel}}</view>
+      <view class="pk-btn primary" bindtap="makeCardImage">合成卡片图</view>
+    </view>
+  </view>
 
   <!-- 导出用的离屏画布（Canvas 2D） -->
   <canvas type="2d" id="exportCanvas" class="export-canvas" style="{{exportStyle}}"></canvas>
