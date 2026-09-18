@@ -1,10 +1,12 @@
+const nav = require('../../utils/nav');
 const store = require('../../utils/store');
 const util = require('../../utils/util');
 const presets = require('../../data/presets');
 
 Page({
   data: {
-    user: null,
+    // 给一个安全占位：页面根节点不再用 wx:if 包住，数据异常时最差也只是内容空，不会整页白屏
+    user: { nickname: '加载中…', uid: '', avatar: '', avatarColor: '#8ac6a0', ini: '咔' },
     theme: '',
     seg: 'made',             // made | fav
     madeList: [],
@@ -18,6 +20,10 @@ Page({
     phrasePreview: [],
     phraseBuilt: 0,
     newTag: '',              // 新增标签输入
+    notifyCount: 0,          // 未读互动反馈
+    showNotify: false,
+    notifies: [],
+    notifyH: 320,
     phH: 320,                // 词库滚动高度(px)
     swap: false,
     // 瀑布流双列
@@ -106,9 +112,12 @@ Page({
       const metaArr = [];
       if (item.card.locText) metaArr.push('📍 ' + item.card.locText);
       if (item.card.timeText) metaArr.push('🕰 ' + item.card.timeText);
+      const photos = item.card.photos || [];
       return Object.assign({}, item, {
         x: Math.round(x), y: Math.round(y), w: Math.round(s.w), h: Math.round(s.h),
-        style, imgStyle, main, others, meta: metaArr.join('  ')
+        style, imgStyle, main, others, meta: metaArr.join('  '),
+        cover: photos[0] || '',       // 封面在此算好，视图层不做深层次取值
+        photoCount: photos.length
       });
     });
     const bottom = out.reduce((m, it) => Math.max(m, it.y + it.h), 0);
@@ -139,11 +148,16 @@ Page({
   },
 
   _measureWall(cb) {
-    wx.createSelectorQuery().select('#collageWall').boundingClientRect().exec((r) => {
-      if (r && r[0] && r[0].width) this._wallW = r[0].width;
-      this._wallRect = (r && r[0]) || null;
+    // 墙没渲染出来时（例如当前在「我制作的」分段）直接跳过，不能让整页崩掉
+    try {
+      wx.createSelectorQuery().select('#collageWall').boundingClientRect().exec((r) => {
+        if (r && r[0] && r[0].width) this._wallW = r[0].width;
+        this._wallRect = (r && r[0]) || null;
+        if (cb) cb();
+      });
+    } catch (e) {
       if (cb) cb();
-    });
+    }
   },
 
   toggleCollageEdit(e) {
@@ -190,7 +204,7 @@ Page({
   onTileTap(e) {
     if (this.data.collageEdit || this.data.cDrag) return;
     const it = this.data.collage[e.currentTarget.dataset.i];
-    if (it) wx.navigateTo({ url: '/pages/detail/detail?cardId=' + it.id });
+    if (it) nav.go('/pages/detail/detail?cardId=' + it.id );
   },
 
   onTileSize(e) {
@@ -383,10 +397,19 @@ Page({
     const favSet = {};
     favIds.forEach(id => { favSet[id] = true; });
 
-    const decorate = (c) => Object.assign({}, c, {
-      createdDay: util.friendlyDate(c.createdAt),
-      faved: !!favSet[c.id]
-    });
+    // 封面 / 标题 / 照片数都先算好：视图层不做 `item.phrases[0].text` 这类深层次取值，
+    // 否则遇到缺字段的旧卡片会整页渲染失败
+    const decorate = (c) => {
+      const phrases = c.phrases || [];
+      const first = phrases[0] || null;
+      return Object.assign({}, c, {
+        createdDay: util.friendlyDate(c.createdAt || Date.now()),
+        faved: !!favSet[c.id],
+        cover: (c.photos || [])[0] || '',
+        photoCount: (c.photos || []).length,
+        title: first ? ((first.emoji ? first.emoji + ' ' : '') + (first.text || '')) : '（没有标签的卡片）'
+      });
+    };
     const madeView = made.map(decorate);
     const favView = fav.map(decorate);
 
@@ -412,10 +435,66 @@ Page({
       drag: false,
       collageEdit: false,
       cDrag: false,
-      cIdx: -1
+      cIdx: -1,
+      notifyCount: store.unreadNotifyCount(user.uid)
     }, () => {
       this._buildCollage(favView);
     });
+  },
+
+  /* ---------- 互动反馈（谁收藏了 / 谁留言了 / 谁回复了） ---------- */
+  toggleNotify() {
+    if (!this.data.showNotify) {
+      const uid = this.data.user.uid;
+      const list = store.getNotifies(uid).map((n) => {
+        let icon = '♥';
+        let text = '';
+        if (n.type === 'fav') {
+          icon = '♥';
+          text = (n.fromName || '有人') + ' 收藏了你的卡片「' + (n.cardLabel || '') + '」';
+        } else if (n.type === 'msg') {
+          icon = '💬';
+          text = (n.fromName || '有人') + ' 留言：' + ((n.content || '').slice(0, 40) || '（空）');
+        } else {
+          icon = '↩';
+          text = (n.fromName || '有人') + ' 回复' + (n.toName ? (' @' + n.toName) : '') + '：' + ((n.content || '').slice(0, 40) || '（空）');
+        }
+        return Object.assign({}, n, { icon, text, timeLabel: util.friendlyDate(n.at) });
+      });
+      let h = 320;
+      try {
+        const win = (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync());
+        h = Math.round((win.windowHeight || 700) * 0.42);
+      } catch (e) { /* ignore */ }
+      this.setData({ showNotify: true, showAccounts: false, showPhrases: false, notifies: list, notifyH: h }, () => {
+        this._navHide();
+        this._fitSheet('.nt-sheet', 'notifyH', '.nt-sheet .nt-scroll-body');
+      });
+      store.markNotifiesRead(uid);
+      this.setData({ notifyCount: 0 });
+    } else {
+      this.setData({ showNotify: false });
+      this._navShow();
+    }
+  },
+
+  onNotifyTap(e) {
+    const cardId = e.currentTarget.dataset.card;
+    this.setData({ showNotify: false });
+    this._navShow();
+    if (cardId) nav.go('/pages/detail/detail?cardId=' + cardId );
+  },
+
+  onNotifyUser(e) {
+    const uid = e.currentTarget.dataset.uid;
+    if (!uid) return;
+    if (uid === this.data.user.uid) {
+      wx.showToast({ title: '这是你自己', icon: 'none' });
+      return;
+    }
+    this.setData({ showNotify: false });
+    this._navShow();
+    nav.go('/pages/user/user?uid=' + uid );
   },
 
   /* ---------- 分段 ---------- */
@@ -682,7 +761,7 @@ Page({
   /* ---------- 卡片交互 ---------- */
   onCardTap(e) {
     const card = e.currentTarget.dataset.card;
-    if (card) wx.navigateTo({ url: '/pages/detail/detail?cardId=' + card.id });
+    if (card) nav.go('/pages/detail/detail?cardId=' + card.id );
   },
 
   onToggleFav(e) {
@@ -725,7 +804,7 @@ Page({
   },
 
   goCreate() {
-    wx.navigateTo({ url: '/pages/create/create' });
+    nav.go('/pages/create/create');
   },
 
   goHome() {

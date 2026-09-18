@@ -8,7 +8,10 @@
  */
 
 const util = require('./util');
-const { PRESET_PHRASES } = require('../data/presets');
+// 不用解构写法：部分版本的开发者工具在转 ES5 时会为解构生成运行时辅助模块，
+// 而它的运行时里未必打包了这些模块，会出现 “module '@swc/runtime/...' is not defined”。
+const presetsData = require('../data/presets');
+const PRESET_PHRASES = presetsData.PRESET_PHRASES;
 
 const KEYS = {
   user: 'kk_user',           // 当前激活账号
@@ -71,7 +74,98 @@ function ensureUser() {
     write(KEYS.user, u);
   }
   ensureInAccounts(u);
+  migrateData(u);
   return u;
+}
+
+/* ================= 旧存档兼容：把早期结构补齐 =================
+ * 早期版本的卡片/账号可能缺少后来才加的字段（ownerId、ratio、phrases、
+ * messages[].replies、stickers、mood…），缺字段会让卡片在某些页面里
+ * 匹配不上或渲染不出来。这里统一补全一次，让老存档在新版本里照常打开。
+ */
+
+function normalizeAccount(a) {
+  if (!a || !a.uid) return null;
+  return {
+    uid: a.uid,
+    nickname: a.nickname || ('朋友 ' + String(a.uid).slice(0, 4).toUpperCase()),
+    avatar: a.avatar || '',
+    avatarColor: a.avatarColor || DEFAULT_AVATAR_COLORS[0],
+    createdAt: a.createdAt || Date.now()
+  };
+}
+
+function normalizeCard(c, fallbackOwnerId, knownUids) {
+  if (!c || typeof c !== 'object') return null;
+  const out = Object.assign({}, c);
+  out.id = c.id || util.genId('card');
+  // 没有归属、或归属账号已不在本地账号列表里的老卡片，认领给当前账号；
+  // 否则它既不会出现在「我制作的」里，作者本人也编辑/删除不了。
+  const own = c.ownerId;
+  out.ownerId = (own && (!knownUids || knownUids[own])) ? own : (fallbackOwnerId || own || '');
+  out.ownerName = c.ownerName || '';
+  out.createdAt = c.createdAt || Date.now();
+  out.photos = Array.isArray(c.photos) ? c.photos.filter(Boolean) : [];
+  out.phrases = Array.isArray(c.phrases) ? c.phrases.filter(p => p && (p.text || p.emoji)) : [];
+  out.messages = Array.isArray(c.messages) ? c.messages.map(m => Object.assign({}, m, {
+    replies: Array.isArray(m && m.replies) ? m.replies : []
+  })) : [];
+  out.stickers = Array.isArray(c.stickers) ? c.stickers.filter(s => s && s.emoji) : [];
+  out.mood = c.mood || '';
+  out.customBg = c.customBg || null;
+  out.timeText = c.timeText || '';
+  out.locText = c.locText || '';
+  out.reservedText = c.reservedText || '';
+  return out;
+}
+
+let _migrated = false;
+function migrateData(activeUser) {
+  if (_migrated) return;
+  _migrated = true;
+  try {
+    const uid = (activeUser && activeUser.uid) || '';
+
+    // 1) 账号：补字段、去重、确保当前账号在列表里
+    const rawAccounts = read(KEYS.accounts, []);
+    const accounts = [];
+    const seen = {};
+    (Array.isArray(rawAccounts) ? rawAccounts : []).forEach((a) => {
+      const n = normalizeAccount(a);
+      if (!n || seen[n.uid]) return;
+      seen[n.uid] = true;
+      accounts.push(n);
+    });
+    if (uid && !seen[uid]) {
+      const me = read(KEYS.user, null);
+      const n = normalizeAccount(me) || normalizeAccount(Object.assign({ uid }, activeUser));
+      if (n) { accounts.unshift(n); seen[n.uid] = true; }
+    }
+    if (JSON.stringify(accounts) !== JSON.stringify(rawAccounts)) write(KEYS.accounts, accounts);
+
+    // 2) 卡片：补字段；没有归属或归属已不存在的卡片，认领给当前账号
+    const rawCards = read(KEYS.cards, []);
+    if (Array.isArray(rawCards) && rawCards.length) {
+      const cards = rawCards.map(c => normalizeCard(c, uid, seen)).filter(Boolean);
+      if (JSON.stringify(cards) !== JSON.stringify(rawCards)) write(KEYS.cards, cards);
+    }
+
+    // 3) 收藏表：确保是 { uid: [cardId] } 的形状
+    const rawFavs = read(KEYS.favs, {});
+    if (!rawFavs || typeof rawFavs !== 'object' || Array.isArray(rawFavs)) {
+      write(KEYS.favs, {});
+    } else {
+      const favs = {};
+      let dirty = false;
+      Object.keys(rawFavs).forEach((k) => {
+        if (Array.isArray(rawFavs[k])) favs[k] = rawFavs[k].filter(Boolean);
+        else { favs[k] = []; dirty = true; }
+      });
+      if (dirty) write(KEYS.favs, favs);
+    }
+  } catch (e) {
+    console.error('[咔嚓卡片] 旧数据迁移失败（已跳过，不影响使用）：', e);
+  }
 }
 
 function getUser() {
@@ -294,7 +388,7 @@ function removeCard(id) {
   return removed;
 }
 
-/** 向卡片追加一条留言 */
+/** 向卡片追加一条留言；留言他人卡片时通知作者 */
 function addMessage(cardId, msg) {
   const list = read(KEYS.cards, []);
   const card = list.find(c => c.id === cardId);
@@ -302,6 +396,17 @@ function addMessage(cardId, msg) {
   card.messages = card.messages || [];
   card.messages.push(msg);
   write(KEYS.cards, list);
+
+  if (card.ownerId && card.ownerId !== msg.uid) {
+    addNotify(card.ownerId, {
+      type: 'msg',
+      cardId,
+      cardLabel: (card.phrases && card.phrases[0] && card.phrases[0].text) || '卡片',
+      fromUid: msg.uid,
+      fromName: msg.name,
+      content: msg.content
+    });
+  }
   return card;
 }
 
@@ -312,7 +417,14 @@ function getFavIds(uid) {
   return (favs[uid] || []).slice();
 }
 
-/** 切换收藏，返回 { liked, favIds } */
+function nameOf(uid) {
+  const active = read(KEYS.user, null);
+  if (active && active.uid === uid) return active.nickname || '朋友';
+  const acc = getUserById(uid);
+  return (acc && acc.nickname) || '有人';
+}
+
+/** 切换收藏，返回 { liked, favIds }；收藏他人卡片时通知作者 */
 function toggleFav(uid, cardId) {
   const favs = read(KEYS.favs, {});
   let arr = favs[uid] || [];
@@ -321,10 +433,98 @@ function toggleFav(uid, cardId) {
   else arr.unshift(cardId);
   favs[uid] = arr;
   write(KEYS.favs, favs);
+
+  if (!liked) {
+    const card = getCardById(cardId);
+    if (card && card.ownerId && card.ownerId !== uid) {
+      addNotify(card.ownerId, {
+        type: 'fav',
+        cardId,
+        cardLabel: (card.phrases && card.phrases[0] && card.phrases[0].text) || '卡片',
+        fromUid: uid,
+        fromName: nameOf(uid)
+      });
+    }
+  }
   return { liked: !liked, favIds: arr.slice() };
 }
 
 /* ================= 统计 ================= */
+
+/* ================= 他人主页 / 互动反馈 ================= */
+
+/** 按 uid 取账号资料（用于他人主页） */
+function getUserById(uid) {
+  const list = read(KEYS.accounts, []);
+  return list.find(a => a.uid === uid) || null;
+}
+
+/** 某个账号制作的卡片 */
+function getCardsByOwner(uid) {
+  return getCards().filter(c => c.ownerId === uid);
+}
+
+/** 一张卡被多少人收藏 */
+function favCount(cardId) {
+  const favs = read(KEYS.favs, {});
+  return Object.keys(favs).filter(k => (favs[k] || []).indexOf(cardId) >= 0).length;
+}
+
+function notifyKey(uid) { return 'kk_notify_' + uid; }
+
+/** 给某账号追加一条互动反馈 */
+function addNotify(toUid, payload) {
+  if (!toUid) return;
+  const list = read(notifyKey(toUid), []);
+  list.unshift(Object.assign({
+    id: util.genId('nt'),
+    at: Date.now(),
+    read: false
+  }, payload));
+  write(notifyKey(toUid), list.slice(0, 200));
+}
+
+function getNotifies(uid) { return read(notifyKey(uid), []); }
+
+function unreadNotifyCount(uid) {
+  return getNotifies(uid).filter(n => !n.read).length;
+}
+
+function markNotifiesRead(uid) {
+  const list = getNotifies(uid).map(n => Object.assign({}, n, { read: true }));
+  write(notifyKey(uid), list);
+}
+
+/** 回复某条留言（一级评论下的回复） */
+function addReply(cardId, msgId, reply) {
+  const list = read(KEYS.cards, []);
+  const card = list.find(c => c.id === cardId);
+  if (!card) return null;
+  const msg = (card.messages || []).find(m => m.id === msgId);
+  if (!msg) return null;
+  msg.replies = msg.replies || [];
+  msg.replies.push(reply);
+  write(KEYS.cards, list);
+
+  const label = (card.phrases && card.phrases[0] && card.phrases[0].text) || '你的卡片';
+  // 通知卡片作者
+  if (card.ownerId && card.ownerId !== reply.uid) {
+    addNotify(card.ownerId, {
+      type: 'reply', cardId, cardLabel: label,
+      fromUid: reply.uid, fromName: reply.name,
+      content: reply.content, toName: reply.replyToName || ''
+    });
+  }
+  // 通知被回复的留言作者
+  if (msg.uid && msg.uid !== reply.uid && msg.uid !== card.ownerId) {
+    addNotify(msg.uid, {
+      type: 'reply', cardId, cardLabel: label,
+      fromUid: reply.uid, fromName: reply.name,
+      content: reply.content, toName: reply.replyToName || msg.name
+    });
+  }
+  return card;
+}
 
 function statsFor(uid) {
   const cards = getCards();
@@ -403,9 +603,16 @@ module.exports = {
   removeImages,
   getCards,
   getCardById,
+  getCardsByOwner,
+  getUserById,
   upsertCard,
   removeCard,
   addMessage,
+  addReply,
+  favCount,
+  getNotifies,
+  unreadNotifyCount,
+  markNotifiesRead,
   getFavIds,
   toggleFav,
   statsFor,

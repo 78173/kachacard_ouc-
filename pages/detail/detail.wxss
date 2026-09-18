@@ -3,7 +3,192 @@
   padding: 24rpx 24rpx 40rpx;
 }
 
+/* 打不开时的提示：宁可显示一句话，也不要白屏 */
+.d-err {
+  margin: 220rpx 48rpx 0;
+  text-align: center;
+  color: var(--sub);
+}
+.d-err .de-ico { font-size: 96rpx; }
+.d-err .de-txt { margin-top: 20rpx; font-size: 27rpx; line-height: 1.7; }
+.d-err .de-btn {
+  display: inline-block;
+  margin-top: 34rpx;
+  padding: 16rpx 44rpx;
+  border-radius: 44rpx;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
 .hero { position: relative; margin-bottom: 8rpx; }
+
+/* ---------- 翻面：正面卡片 / 背面小档案 ---------- */
+.flip {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.62s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.flip.flipped { transform: rotateY(180deg); }
+.flip-face {
+  width: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.flip-front { position: relative; z-index: 2; }
+/* 翻到背面时，正面不再接收点击（免得手势落在看不见的轮播上） */
+.flip.flipped .flip-front { pointer-events: none; }
+.flip-back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  transform: rotateY(180deg);
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 28rpx;
+  background: linear-gradient(150deg, #ffffff, #eaf6f8 62%, #d9eef2);
+  box-shadow:
+    0 18rpx 40rpx -16rpx rgba(15, 23, 42, 0.35),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(255, 255, 255, 0.9);
+}
+/* 整个背面是一块滚动区：留言再多也能看完，不会被裁掉 */
+.fb-scroll { width: 100%; height: 100%; box-sizing: border-box; }
+.fb-inner {
+  box-sizing: border-box;
+  min-height: 100%;
+  /* 底部留出「翻回正面」提示条的高度，别把最后一条留言挡住 */
+  padding: 40rpx 40rpx 96rpx;
+  display: flex;
+  flex-direction: column;
+}
+.page.dark .flip-back {
+  background: linear-gradient(150deg, #16233b, #10202c 62%, #123336);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.fb-orn { position: absolute; border-radius: 50%; opacity: 0.5; }
+.fb-a {
+  width: 220rpx; height: 220rpx; right: -70rpx; top: -80rpx;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.5), transparent 68%);
+}
+.fb-b {
+  width: 180rpx; height: 180rpx; left: -60rpx; bottom: -70rpx;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.42), transparent 68%);
+}
+.fb-head { display: flex; align-items: center; justify-content: space-between; }
+.fb-tag { font-size: 20rpx; letter-spacing: 4rpx; color: var(--sub); }
+.fb-mood {
+  padding: 6rpx 18rpx; border-radius: 30rpx;
+  font-size: 20rpx; font-weight: 700; color: #1f2d3d;
+}
+.fb-main {
+  margin-top: 22rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.fb-lines { margin-top: 12rpx; }
+.fb-line { font-size: 23rpx; color: var(--sub); line-height: 1.75; }
+.fb-stats { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 18rpx; }
+.fb-stat { font-size: 22rpx; color: var(--accent); font-weight: 700; }
+.fb-sec {
+  margin-top: 26rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx dashed rgba(15, 23, 42, 0.12);
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1rpx;
+}
+.page.dark .fb-sec { border-top-color: rgba(255, 255, 255, 0.12); }
+
+.fb-empty {
+  margin-top: 18rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-left: 6rpx solid var(--accent-soft);
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.page.dark .fb-empty { background: rgba(255, 255, 255, 0.06); }
+
+/* 背面留言：完整显示，不截断 */
+.fb-msgs { margin-top: 18rpx; }
+.fb-msg {
+  margin-bottom: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border-left: 6rpx solid var(--accent-soft);
+}
+.page.dark .fb-msg { background: rgba(255, 255, 255, 0.06); }
+.fb-msg-top { display: flex; align-items: baseline; justify-content: space-between; }
+.fb-msg-name { font-size: 22rpx; font-weight: 700; color: var(--accent); }
+.fb-msg-time { font-size: 19rpx; color: var(--sub); }
+.fb-msg-body {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.75;
+  color: var(--ink);
+  word-break: break-all;
+}
+.fb-reply {
+  margin-top: 12rpx;
+  padding: 10rpx 16rpx;
+  border-radius: 14rpx;
+  background: rgba(15, 163, 173, 0.1);
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--ink);
+  word-break: break-all;
+}
+.fb-reply-name { color: var(--accent); font-weight: 700; }
+.fb-sign { display: flex; align-items: center; margin-top: 22rpx; }
+.fb-seal {
+  padding: 6rpx 14rpx;
+  margin-right: 16rpx;
+  border: 3rpx solid #d9534f;
+  border-radius: 10rpx;
+  color: #d9534f;
+  font-size: 22rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  transform: rotate(-6deg);
+}
+.fb-name { font-size: 22rpx; color: var(--sub); }
+/* 固定在背面底部：滚动留言时始终能点到 */
+.fb-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12rpx 0 16rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--sub);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(226, 242, 246, 0.96));
+}
+.page.dark .fb-hint { background: linear-gradient(180deg, rgba(16, 32, 44, 0), rgba(16, 32, 44, 0.96)); }
+
+.flip-btn {
+  position: absolute;
+  right: 96rpx;   /* 与右上角的播放键并排，避免盖住卡片左上角的心情徽章 */
+  top: 18rpx;
+  z-index: 6;
+  padding: 10rpx 22rpx;
+  border-radius: 30rpx;
+  background: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  font-size: 22rpx;
+}
+.flip-btn:active { transform: scale(0.94); }
+
 .auto-btn {
   position: absolute;
   right: 18rpx;
@@ -211,6 +396,75 @@
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+/* 创作者可见的互动反馈 */
+.owner-feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 16rpx 8rpx 0;
+  padding: 14rpx 22rpx;
+  border-radius: 18rpx;
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  box-shadow: 0 6rpx 16rpx -8rpx rgba(15, 23, 42, 0.22), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+}
+.of-item { font-size: 23rpx; font-weight: 700; color: var(--accent); }
+.of-dot { margin: 0 12rpx; color: var(--sub); }
+.of-tip { width: 100%; margin-top: 8rpx; font-size: 19rpx; color: var(--sub); }
+
+/* 回复 */
+.msg-reply {
+  margin-left: auto;
+  font-size: 21rpx;
+  color: var(--accent);
+  padding: 2rpx 14rpx;
+  border: 1rpx solid var(--accent-soft);
+  border-radius: 24rpx;
+}
+.reply-list { margin-top: 14rpx; }
+.reply-item { display: flex; align-items: flex-start; margin-top: 12rpx; }
+.reply-ava {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
+  background: var(--line);
+}
+.reply-main { flex: 1; min-width: 0; }
+.reply-top { display: flex; align-items: baseline; flex-wrap: wrap; }
+.reply-name { font-size: 22rpx; font-weight: 700; color: var(--sub); }
+.reply-to { margin-left: 10rpx; font-size: 20rpx; color: var(--accent); }
+.reply-time { margin-left: 12rpx; font-size: 18rpx; color: var(--sub); opacity: 0.8; }
+.reply-bubble {
+  display: inline-block;
+  margin-top: 6rpx;
+  padding: 12rpx 18rpx;
+  border-radius: 4rpx 16rpx 16rpx 16rpx;
+  background: var(--line);
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--ink);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.compose-cancel {
+  margin-left: auto;
+  font-size: 21rpx;
+  color: var(--sub);
+  padding: 4rpx 16rpx;
+  border-radius: 24rpx;
+  background: var(--line);
+}
+.compose-title { display: flex; align-items: center; }
 
 .msg-row.mine { flex-direction: row-reverse; }
 .msg-row.mine .msg-ava { margin-right: 0; margin-left: 18rpx; }

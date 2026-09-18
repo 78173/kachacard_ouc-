@@ -1,3 +1,4 @@
+const nav = require('../utils/nav');
 /**
  * 自定义底部导航（经典三格：首页 | 中央“做卡片” | 我的）
  * - 左右两格为 tab 页（switchTab）
@@ -19,7 +20,7 @@ Component({
       wx.switchTab({ url: path });
     },
     onMakeCard() {
-      wx.navigateTo({ url: '/pages/create/create' });
+      nav.go('/pages/create/create');
     }
   }
 });

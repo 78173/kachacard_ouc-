@@ -1,0 +1,63 @@
+<view class="page userpage {{theme}} enter-a">
+
+  <!-- 打不开时的提示（不让页面变成白屏） -->
+  <view wx:if="{{err}}" class="u-err">{{err}}</view>
+
+  <!-- 用户信息 -->
+  <view class="u-hero anim-fadeUp">
+    <view class="u-orn uo-a"></view>
+    <view class="u-orn uo-b"></view>
+    <view class="u-ava">
+      <image wx:if="{{user.avatar}}" class="u-ava-img" src="{{user.avatar}}" mode="aspectFill" />
+      <view wx:else class="u-ava-txt" style="background: {{user.avatarColor}};">{{user.ini}}</view>
+    </view>
+    <view class="u-info">
+      <view class="u-name">{{user.nickname}}</view>
+      <view class="u-id">ID · {{user.uid}}</view>
+      <view class="u-badge">{{isSelf ? '这是你自己的主页' : 'TA 的卡片主页'}}</view>
+    </view>
+    <view wx:if="{{isSelf}}" class="u-self" bindtap="goSelf">去「我的」›</view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="u-stats anim-fadeUp anim-i1">
+    <view class="u-stat">
+      <text class="us-v">{{madeCount}}</text>
+      <text class="us-l">制作的卡片</text>
+    </view>
+    <view class="u-stat">
+      <text class="us-v">{{favGot}}</text>
+      <text class="us-l">收到的收藏</text>
+    </view>
+  </view>
+
+  <!-- 作品 -->
+  <view class="u-title anim-fadeUp">
+    <text class="ut-main">TA 的作品</text>
+    <text class="ut-sub">共 {{madeCount}} 张</text>
+  </view>
+
+  <view wx:if="{{madeCount > 0}}" class="grid">
+    <view class="mcol">
+      <view wx:for="{{cols.left}}" wx:key="id" class="mcell anim-fadeUp" data-card="{{item}}" bindtap="onCardTap">
+        <view class="cell-inner">
+          <card-view card="{{item}}" mode="poster" />
+          <view class="cell-meta">{{item.timeText || item.createdDay}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="mcol">
+      <view wx:for="{{cols.right}}" wx:key="id" class="mcell anim-fadeUp" data-card="{{item}}" bindtap="onCardTap">
+        <view class="cell-inner">
+          <card-view card="{{item}}" mode="poster" />
+          <view class="cell-meta">{{item.timeText || item.createdDay}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty anim-fadeUp">
+    <view class="ico">🪴</view>
+    <view class="txt">TA 还没有公开的卡片</view>
+  </view>
+</view>

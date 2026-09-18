@@ -1,19 +1,77 @@
-<view class="page detail {{theme}} enter-a" wx:if="{{card}}">
+<view class="page detail {{theme}} enter-a">
 
-  <!-- 卡片主体 -->
-  <view class="hero anim-fadeUp">
-    <card-view
-      card="{{card}}"
-      mode="full"
-      autoplay="{{autoPlay}}"
-      bind:swipertouch="onSwiperTouch"
-    />
-    <view wx:if="{{card.photos.length > 1}}" class="auto-btn {{autoPlay ? 'on' : ''}}" bindtap="toggleAutoPlay">
-      {{autoPlay ? '❚❚' : '▶'}}
-    </view>
+  <!-- 打不开时的提示（不让页面变成白屏） -->
+  <view wx:if="{{!card}}" class="d-err">
+    <view class="de-ico">🃏</view>
+    <view class="de-txt">{{err || '正在打开卡片…'}}</view>
+    <view class="de-btn" bindtap="goHome">回首页看看</view>
   </view>
 
-  <!-- 首屏操作：收藏 + 去评论 -->
+  <block wx:if="{{card}}">
+  <!-- 卡片主体：可翻面看“背面” -->
+  <view class="hero anim-fadeUp">
+    <view class="flip {{flipped ? 'flipped' : ''}}">
+      <!-- 正面 -->
+      <view class="flip-face flip-front">
+        <card-view
+          card="{{card}}"
+          mode="full"
+          autoplay="{{autoPlay}}"
+          bind:swipertouch="onSwiperTouch"
+        />
+      </view>
+      <!-- 背面：这张卡片的“小档案” + 完整的留言墙（可滚动） -->
+      <view class="flip-face flip-back">
+        <view class="fb-orn fb-a"></view>
+        <view class="fb-orn fb-b"></view>
+        <scroll-view scroll-y class="fb-scroll" catchtouchmove="noop">
+          <view class="fb-inner">
+            <view class="fb-head">
+              <text class="fb-tag">卡片背面</text>
+              <text wx:if="{{backMood}}" class="fb-mood" style="{{backMood.style}}">{{backMood.emoji}} {{backMood.text}}</text>
+            </view>
+            <view class="fb-main">{{backTitle}}</view>
+            <view class="fb-lines">
+              <view wx:for="{{backTags}}" wx:key="*this" class="fb-line">· {{item}}</view>
+            </view>
+            <view class="fb-stats">
+              <text class="fb-stat">♥ {{favCount}} 人收藏</text>
+              <text class="fb-stat">💬 {{msgCount}} 条留言</text>
+              <text wx:if="{{stickerCount > 0}}" class="fb-stat">🎨 {{stickerCount}} 枚贴纸</text>
+            </view>
+
+            <view class="fb-sec">💬 写在背面的话（{{msgCount}}）</view>
+            <view wx:if="{{msgs.length === 0}}" class="fb-empty">{{backQuote}}</view>
+            <view wx:else class="fb-msgs">
+              <view wx:for="{{msgs}}" wx:key="id" class="fb-msg">
+                <view class="fb-msg-top">
+                  <text class="fb-msg-name">{{item.mine ? '我' : item.name}}</text>
+                  <text class="fb-msg-time">{{item.timeLabel}}</text>
+                </view>
+                <view class="fb-msg-body">{{item.content}}</view>
+                <view wx:for="{{item.replies}}" wx:for-item="r" wx:key="id" class="fb-reply">
+                  <text class="fb-reply-name">{{r.mine ? '我' : r.name}}：</text>
+                  <text class="fb-reply-text">{{r.content}}</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="fb-sign">
+              <view class="fb-seal">咔嚓</view>
+              <text class="fb-name">{{owner.name}} · {{createdDay}}</text>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="fb-hint" catchtap="toggleFlip">点这里翻回正面 ↩</view>
+      </view>
+    </view>
+    <view wx:if="{{photoCount > 1}}" class="auto-btn {{autoPlay ? 'on' : ''}}" bindtap="toggleAutoPlay">
+      {{autoPlay ? '❚❚' : '▶'}}
+    </view>
+    <view class="flip-btn" catchtap="toggleFlip">{{flipped ? '↩ 正面' : '🔄 翻面'}}</view>
+  </view>
+
+  <!-- 首屏操作：收藏 + 去评论 + 导出 -->
   <view class="hero-actions anim-fadeUp anim-i1">
     <view
       class="hact like {{liked ? 'on' : ''}} {{likedAnim ? 'heart-active' : ''}}"
@@ -25,22 +83,30 @@
   <view class="scroll-hint anim-fadeUp anim-i2" bindtap="goComment">下滑查看完整故事与留言 ▾</view>
 
   <!-- ↓↓↓ 下滑后才看到的信息 ↓↓↓ -->
-  <!-- 创作者 + 元信息 -->
-  <view class="maker anim-fadeUp">
+  <!-- 创作者 + 元信息（点头像/昵称可看 TA 的主页） -->
+  <view class="maker anim-fadeUp" bindtap="onUserTap" data-uid="{{card.ownerId}}">
     <view class="maker-ava" wx:if="{{owner && owner.avatar}}">
       <image class="m-ava-img" src="{{owner.avatar}}" mode="aspectFill" />
     </view>
     <view class="maker-ava maker-ava-text" wx:else style="background: {{owner.color}};">{{owner.ini}}</view>
     <view class="maker-info">
       <view class="maker-name">{{owner.name}} · 的卡片</view>
-      <view class="maker-sub">咔嚓于 {{createdDay}}</view>
+      <view class="maker-sub">咔嚓于 {{createdDay}} · 点这里看 TA 的主页 ›</view>
     </view>
   </view>
 
-  <!-- 编辑 / 删除 / 仿照（次要操作） -->
+  <!-- 创作者可见的互动反馈 -->
+  <view wx:if="{{isOwner}}" class="owner-feedback anim-fadeUp">
+    <text class="of-item">♥ {{favCount}} 人收藏了这张卡</text>
+    <text class="of-dot">·</text>
+    <text class="of-item">💬 {{msgCount}} 条留言</text>
+    <text class="of-tip">（新的互动会出现在「我的 → 互动反馈」）</text>
+  </view>
+
+  <!-- 编辑 / 删除 / 我也做一张（「我也做一张」任何人都能用，包括作者自己） -->
   <view class="acts anim-fadeUp">
     <view wx:if="{{isOwner}}" class="act ghost" bindtap="goEdit">✎ 编辑</view>
-    <view wx:else class="act ghost" bindtap="goRemake">♻ 仿照一张</view>
+    <view class="act ghost remake" bindtap="goRemake">♻ 我也做一张</view>
     <view wx:if="{{isOwner}}" class="act danger" bindtap="onDelete">🗑 删除</view>
   </view>
 
@@ -55,18 +121,22 @@
 
   <!-- 评论输入 -->
   <view id="comment-sec" class="compose anim-fadeUp">
-    <view class="compose-title">💬 评论 · 给 {{owner.name}}</view>
+    <view class="compose-title">
+      <text wx:if="{{replyToName}}">↩ 正在回复 @{{replyToName}}</text>
+      <text wx:else>💬 评论 · 给 {{owner.name}}</text>
+      <text wx:if="{{replyToName}}" class="compose-cancel" catchtap="cancelReply">取消</text>
+    </view>
     <textarea
       class="compose-area"
       value="{{msgText}}"
       maxlength="{{msgMax}}"
       placeholder="写下想对 TA 说的长一点的话……（最多 {{msgMax}} 字）"
-      placeholdesr-class="ph"
+      placeholder-class="ph"
       bindinput="onMsgInput"
     ></textarea>
     <view class="compose-foot">
       <view class="compose-len">{{msgLen}}/{{msgMax}}</view>
-      <view class="send-btn" bindtap="sendMsg">发送评论</view>
+      <view class="send-btn" bindtap="sendMsg">{{replyToName ? '发送回复' : '发送评论'}}</view>
     </view>
   </view>
 
@@ -82,17 +152,37 @@
     </view>
 
     <view wx:for="{{msgs}}" wx:key="id" class="msg-row {{item.uid === user.uid ? 'mine' : ''}}">
-      <view class="msg-ava" wx:if="{{item.avatar}}">
+      <view class="msg-ava" wx:if="{{item.avatar}}" data-uid="{{item.uid}}" catchtap="onUserTap">
         <image class="m-ava-img" src="{{item.avatar}}" mode="aspectFill" />
       </view>
-      <view class="msg-ava" wx:else style="background: {{item.avatarColor}};">{{item.ini}}</view>
+      <view class="msg-ava" wx:else style="background: {{item.avatarColor}};" data-uid="{{item.uid}}" catchtap="onUserTap">{{item.ini}}</view>
 
       <view class="msg-main">
         <view class="msg-top">
-          <text class="msg-name">{{item.uid === user.uid ? '我' : item.name}}</text>
+          <text class="msg-name" data-uid="{{item.uid}}" catchtap="onUserTap">{{item.uid === user.uid ? '我' : item.name}}</text>
           <text class="msg-time">{{item.timeLabel}}</text>
+          <text class="msg-reply" catchtap="onReply" data-id="{{item.id}}" data-name="{{item.name}}">回复</text>
         </view>
         <view class="msg-bubble">{{item.content}}</view>
+
+        <!-- 该留言下的回复 -->
+        <view wx:if="{{item.replies.length > 0}}" class="reply-list">
+          <view wx:for="{{item.replies}}" wx:for-item="r" wx:key="id" class="reply-item">
+            <view class="reply-ava" wx:if="{{r.avatar}}" data-uid="{{r.uid}}" catchtap="onUserTap">
+              <image class="m-ava-img" src="{{r.avatar}}" mode="aspectFill" />
+            </view>
+            <view class="reply-ava" wx:else style="background: {{r.avatarColor}};" data-uid="{{r.uid}}" catchtap="onUserTap">{{r.ini}}</view>
+            <view class="reply-main">
+              <view class="reply-top">
+                <text class="reply-name" data-uid="{{r.uid}}" catchtap="onUserTap">{{r.uid === user.uid ? '我' : r.name}}</text>
+                <text wx:if="{{r.replyToName}}" class="reply-to">回复 @{{r.replyToName}}</text>
+                <text class="reply-time">{{r.timeLabel}}</text>
+                <text class="msg-reply" catchtap="onReply" data-id="{{item.id}}" data-name="{{r.name}}">回复</text>
+              </view>
+              <view class="reply-bubble">{{r.content}}</view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -135,4 +225,5 @@
 
   <!-- 导出用的离屏画布（Canvas 2D） -->
   <canvas type="2d" id="exportCanvas" class="export-canvas" style="{{exportStyle}}"></canvas>
+  </block>
 </view>

@@ -315,6 +315,43 @@
   color: var(--sub);
 }
 .mini-chip:active { transform: scale(0.94); }
+.mini-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+/* ---------- 心情色 · 贴纸 ---------- */
+.mood-row { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.mood-chip {
+  padding: 10rpx 24rpx;
+  border-radius: 32rpx;
+  font-size: 23rpx;
+  font-weight: 700;
+  color: #1f2d3d;
+  border: 2rpx solid transparent;
+  box-shadow: 0 6rpx 14rpx -8rpx rgba(15, 23, 42, 0.6), inset 0 1rpx 0 rgba(255, 255, 255, 0.6);
+  opacity: 0.62;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+.mood-chip.on {
+  opacity: 1;
+  transform: translateY(-2rpx) scale(1.04);
+  border-color: var(--ink);
+}
+.mood-chip:active { transform: scale(0.95); }
+
+.st-row { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.st-pick {
+  width: 84rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  font-size: 40rpx;
+  border-radius: 22rpx;
+  background: var(--surface);
+  border: 1rpx solid var(--line);
+  box-shadow: 0 6rpx 14rpx -8rpx rgba(15, 23, 42, 0.5), inset 0 1rpx 0 rgba(255, 255, 255, 0.85);
+}
+.st-pick:active { transform: scale(0.9) rotate(-6deg); }
+.st-tools { display: flex; align-items: center; gap: 16rpx; margin-top: 18rpx; }
+.st-tip { font-size: 20rpx; color: var(--sub); }
 
 /* ---------- ⑤ 预留长文本 ---------- */
 .reserved-box { background: var(--line); border-radius: 18rpx; padding: 20rpx 22rpx 12rpx; }

@@ -63,10 +63,52 @@
   <view class="preview-wrap anim-fadeUp anim-i2">
     <view class="preview-label"><text class="live-dot"></text>实时预览</view>
     <view wx:if="{{previewCard}}">
-      <card-view card="{{previewCard}}" mode="full" />
+      <card-view
+        card="{{previewCard}}"
+        mode="full"
+        sticker-edit="{{stickerEdit}}"
+        bind:stickerchange="onStickerChange"
+        bind:stickerremove="onStickerRemove"
+      />
     </view>
     <view wx:else class="preview-empty">
       <text>选好照片后，这里会出现你的卡片</text>
+    </view>
+  </view>
+
+  <!-- ============ 心情色 · 贴纸 ============ -->
+  <view class="sec anim-fadeUp">
+    <view class="sec-head">
+      <text class="no">✦</text>
+      <text class="st">心情与贴纸</text>
+      <text class="hint">给这张卡片加点气氛</text>
+    </view>
+
+    <view class="sub-label">此刻心情（可选）</view>
+    <view class="mood-row">
+      <view
+        wx:for="{{moodList}}"
+        wx:key="id"
+        class="mood-chip {{item.on ? 'on' : ''}}"
+        data-i="{{index}}"
+        bindtap="pickMood"
+      >{{item.emoji}} {{item.text}}</view>
+    </view>
+
+    <view class="sub-label">贴纸（贴在照片上，可拖动摆位置）</view>
+    <view class="st-row">
+      <view
+        wx:for="{{stickerPalette}}"
+        wx:key="*this"
+        class="st-pick"
+        data-i="{{index}}"
+        bindtap="addSticker"
+      >{{item}}</view>
+    </view>
+    <view class="st-tools">
+      <view class="mini-chip {{stickerEdit ? 'on' : ''}}" bindtap="toggleStickerEdit">{{stickerEdit ? '✓ 摆放完成' : '✥ 摆放贴纸'}}</view>
+      <text class="st-tip">{{stickerEdit ? '在预览里拖动贴纸 · 长按撕掉' : '已贴 ' + stickers.length + ' 枚'}}</text>
+      <view wx:if="{{stickers.length > 0}}" class="mini-chip" bindtap="clearStickers">全部撕掉</view>
     </view>
   </view>
 
@@ -90,7 +132,7 @@
     </view>
 
     <view class="sub-label">背景风格</view>
-    <scroll-view scroll-x class="tpl-scroll" enhanced show-scrollbar="{{false}}">
+    <scroll-view scroll-x="{{true}}" class="tpl-scroll" enhanced="{{true}}" show-scrollbar="{{false}}">
       <view class="tpl-row">
         <view
           wx:for="{{styles}}"

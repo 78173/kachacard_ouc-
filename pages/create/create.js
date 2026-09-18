@@ -6,6 +6,23 @@ const MAX_PHOTOS = 9;
 const MAX_PHRASES = 4;
 const MAX_RESERVED = 300;
 
+/**
+ * 预设容错。
+ * `data` 是在 Page({...}) 执行时立刻求值的，一旦这里抛错，Page() 就注册不上，
+ * 整个页面会变成一片空白——所以这些新加的预设都带一份内置兜底，
+ * 万一 presets.js 是旧版本（没有这两个字段）也不会把页面搞崩。
+ */
+const MOODS = (presets.MOODS && presets.MOODS.length) ? presets.MOODS : [
+  { id: 'happy', emoji: '😄', text: '开心', color: '#fbbf24' },
+  { id: 'calm', emoji: '🌊', text: '平静', color: '#38bdf8' },
+  { id: 'miss', emoji: '🌙', text: '想念', color: '#818cf8' },
+  { id: 'power', emoji: '⚡', text: '元气', color: '#f472b6' },
+  { id: 'soft', emoji: '🌸', text: '温柔', color: '#f9a8d4' },
+  { id: 'wish', emoji: '✨', text: '期待', color: '#2dd4bf' }
+];
+const STICKERS = (presets.STICKERS && presets.STICKERS.length) ? presets.STICKERS
+  : ['🌸', '⭐', '☁️', '🍃', '💛', '🎀', '🐾', '☀️', '🌊', '🍓', '✈️', '🎵'];
+
 function resolveCard(card) {
   const hasStyle = presets.STYLES.some(s => s.id === card.style);
   const style = hasStyle ? card.style
@@ -50,6 +67,13 @@ Page({
     reservedLen: 0,
     reservedMax: MAX_RESERVED,
     reservedDefault: presets.DEFAULT_RESERVED,
+    // 心情色 + 贴纸
+    moods: MOODS,
+    moodList: MOODS.map(m => Object.assign({}, m, { on: false })),
+    mood: '',
+    stickerPalette: STICKERS,
+    stickers: [],
+    stickerEdit: false,
     previewCard: null,
     theme: ''
   },
@@ -114,6 +138,9 @@ Page({
       locText: '',
       reservedText: '',
       reservedLen: 0,
+      mood: '',
+      stickers: [],
+      stickerEdit: false,
       previewCard: null
     }, () => this._rebuild());
   },
@@ -133,6 +160,9 @@ Page({
       locText: card.locText || '',
       reservedText: card.reservedText || '',
       reservedLen: (card.reservedText || '').length,
+      mood: card.mood || '',
+      stickers: (card.stickers || []).slice(),
+      stickerEdit: false,
       previewCard: null
     }, () => this._rebuild());
   },
@@ -148,6 +178,7 @@ Page({
     const patch = {
       selPhrase,
       layoutHint: styleObj.name + ' · ' + ratioObj.name,
+      moodList: MOODS.map(m => Object.assign({}, m, { on: m.id === d.mood })),
       phraseChips: (d.phraseLibrary || []).map(p => Object.assign({}, p, {
         on: !!selPhrase[p.id]
       }))
@@ -166,9 +197,87 @@ Page({
       phrases: d.phrases,
       timeText: d.timeText,
       locText: d.locText,
-      customBg: d.customBg || null
+      customBg: d.customBg || null,
+      mood: d.mood,
+      stickers: d.stickers
     };
     this.setData(patch);
+  },
+
+  /* ============ 心情色 · 贴纸 ============ */
+  pickMood(e) {
+    const m = this.data.moods[e.currentTarget.dataset.i];
+    if (!m) return;
+    const next = this.data.mood === m.id ? '' : m.id;   // 再点一次取消
+    this.setData({ mood: next }, () => this._rebuild());
+  },
+
+  clearMood() {
+    this.setData({ mood: '' }, () => this._rebuild());
+  },
+
+  addSticker(e) {
+    const emoji = this.data.stickerPalette[e.currentTarget.dataset.i];
+    if (!emoji) return;
+    if (this.data.stickers.length >= 8) {
+      this._tip('最多贴 8 枚贴纸');
+      return;
+    }
+    const n = this.data.stickers.length;
+    // 依次落在不同位置，避免叠在一起
+    const spots = [
+      { x: 24, y: 26 }, { x: 76, y: 30 }, { x: 30, y: 72 },
+      { x: 72, y: 70 }, { x: 50, y: 22 }, { x: 22, y: 50 },
+      { x: 80, y: 52 }, { x: 50, y: 82 }
+    ];
+    const spot = spots[n % spots.length];
+    const list = this.data.stickers.slice();
+    list.push({
+      id: util.genId('sk'),
+      emoji,
+      x: spot.x,
+      y: spot.y,
+      size: 54,
+      rot: (n % 2 ? 1 : -1) * (6 + n)
+    });
+    this.setData({ stickers: list, stickerEdit: true }, () => this._rebuild());
+    wx.vibrateShort && wx.vibrateShort({ type: 'light' });
+  },
+
+  toggleStickerEdit() {
+    if (!this.data.stickers.length) {
+      this._tip('先选一枚贴纸吧');
+      return;
+    }
+    const on = !this.data.stickerEdit;
+    this.setData({ stickerEdit: on });
+    this._tip(on ? '拖动摆放，长按删除' : '摆放完成');
+  },
+
+  /** 组件里拖动贴纸结束后回传的新位置 */
+  onStickerChange(e) {
+    const d = e.detail || {};
+    const list = this.data.stickers.slice();
+    const it = list[d.index];
+    if (!it) return;
+    it.x = d.x;
+    it.y = d.y;
+    this.setData({ stickers: list }, () => this._rebuild());
+  },
+
+  onStickerRemove(e) {
+    const i = (e.detail || {}).index;
+    const list = this.data.stickers.slice();
+    if (i == null || i < 0 || !list[i]) return;
+    const gone = list.splice(i, 1);
+    this.setData({ stickers: list, stickerEdit: list.length > 0 }, () => this._rebuild());
+    this._tip('已撕掉 ' + gone[0].emoji);
+  },
+
+  clearStickers() {
+    if (!this.data.stickers.length) return;
+    this.setData({ stickers: [], stickerEdit: false }, () => this._rebuild());
+    this._tip('贴纸已清空');
   },
 
   /* ============ ① 照片 ============ */
@@ -206,7 +315,13 @@ Page({
     const i = e.currentTarget.dataset.i;
     if (i === 0) return;
     const photos = this.data.photos.slice();
-    const [img] = photos.splice(i, 1);
+    // 注意：这里不要写 `const [img] = photos.splice(i, 1)`。
+    // 数组解构会让开发者工具的 ES6→ES5 编译器生成 _array_with_holes 辅助模块，
+    // 而部分版本的开发者工具运行时里没有这个模块，会直接抛
+    // “module '@swc/runtime/_array_with_holes.js' is not defined”，
+    // 导致页面注册失败、整页空白。用下标取即可。
+    const taken = photos.splice(i, 1);
+    const img = taken[0];
     photos.unshift(img);
     this.setData({ photos }, () => this._rebuild());
     wx.showToast({ title: '已设为封面', icon: 'none' });
@@ -387,6 +502,8 @@ Page({
         timeText: d.timeText.trim(),
         locText: d.locText.trim(),
         reservedText: d.reservedText,
+        mood: d.mood || '',
+        stickers: d.stickers.slice(),
         ownerName: existing.ownerName || user.nickname,
         ownerAvatar: existing.ownerAvatar || user.avatar,
         ownerAvatarColor: existing.ownerAvatarColor || user.avatarColor
@@ -409,6 +526,8 @@ Page({
         timeText: d.timeText.trim(),
         locText: d.locText.trim(),
         reservedText: d.reservedText,
+        mood: d.mood || '',
+        stickers: d.stickers.slice(),
         messages: []
       };
     }

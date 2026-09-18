@@ -1,3 +1,4 @@
+const nav = require('../../utils/nav');
 const store = require('../../utils/store');
 const util = require('../../utils/util');
 const presets = require('../../data/presets');
@@ -20,6 +21,15 @@ Page({
     card: null,
     user: null,
     owner: null,
+    err: '',
+    // 翻面看“卡片背面”
+    flipped: false,
+    backMood: null,
+    backTitle: '',
+    backTags: [],
+    backQuote: '',
+    stickerCount: 0,
+    photoCount: 0,
     liked: false,
     likedAnim: false,
     isOwner: false,
@@ -28,6 +38,10 @@ Page({
     msgLen: 0,
     msgMax: MAX_MSG,
     createdDay: '',
+    favCount: 0,
+    msgCount: 0,
+    replyTo: '',
+    replyToName: '',
     autoPlay: true,
     theme: '',
     exportStyle: 'width:750px;height:900px;',
@@ -56,6 +70,40 @@ Page({
   },
 
   noop() { /* 拦截 touchmove，避免底层页面跟随滚动 */ },
+
+  /* ---------- 翻面：看卡片的“背面” ---------- */
+  toggleFlip() {
+    if (!this.data.card) return;
+    const next = !this.data.flipped;
+    // 看背面时让轮播停下来，翻回正面再恢复自动播放
+    this.setData({ flipped: next, autoPlay: next ? false : ((this.data.card.photos || []).length > 1) });
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+  },
+
+  /** 组织背面要展示的内容 */
+  _buildBack(card, msgs) {
+    const phrases = card.phrases || [];
+    const first = phrases[0] || null;
+    const backTitle = first ? ((first.emoji ? first.emoji + ' ' : '') + first.text) : '一张没有标题的卡片';
+    const backTags = phrases.slice(1, 5).map(p => (p.emoji ? p.emoji + ' ' : '') + p.text);
+    const moodDef = (presets.MOODS || []).filter(m => m.id === card.mood)[0] || null;
+    const last = msgs[0];
+    const backQuote = last
+      ? '「' + (last.content || '').slice(0, 48) + (last.content && last.content.length > 48 ? '…' : '') + '」 —— ' + (last.name || '一位朋友')
+      : (card.reservedText || '这张卡片还没有人留言，背面空地等着被写满。');
+    return {
+      backTitle,
+      backTags,
+      backQuote,
+      backMood: moodDef
+        ? { emoji: moodDef.emoji, text: moodDef.text, style: 'background:' + moodDef.color + ';' }
+        : null
+    };
+  },
+
+  goHome() {
+    wx.switchTab({ url: '/pages/index/index' });
+  },
 
   /* 下滑定位到评论区 */
   goComment() {
@@ -271,19 +319,30 @@ Page({
   _load() {
     const card = store.getCardById(this.data.cardId);
     if (!card) {
+      this.setData({ err: '这张卡片不存在，可能已经被删除了' });
       wx.showToast({ title: '卡片不存在或已删除', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 600);
+      setTimeout(() => wx.navigateBack(), 900);
       return;
     }
     const user = this.data.user || store.getUser();
     const msgs = (card.messages || []).slice().reverse().map(m => Object.assign({}, m, {
       timeLabel: util.friendlyDate(m.at),
-      ini: (m.name || '咔').slice(0, 1)
+      ini: (m.name || '咔').slice(0, 1),
+      mine: m.uid === user.uid,
+      replies: (m.replies || []).map(r => Object.assign({}, r, {
+        timeLabel: util.friendlyDate(r.at),
+        ini: (r.name || '咔').slice(0, 1),
+        mine: r.uid === user.uid
+      }))
     }));
     const ownerName = card.ownerName || '咔嚓用户';
-    this.setData({
+    const back = this._buildBack(card, msgs);
+    this.setData(Object.assign({
       card,
       user,
+      err: '',
+      stickerCount: (card.stickers || []).length,
+      photoCount: (card.photos || []).length,
       owner: {
         name: ownerName,
         ini: ownerName.slice(0, 1),
@@ -294,9 +353,13 @@ Page({
       liked: store.getFavIds(user.uid).indexOf(card.id) >= 0,
       isOwner: card.ownerId === user.uid,
       createdDay: util.friendlyDate(card.createdAt),
+      favCount: store.favCount(card.id),
+      msgCount: msgs.length,
       msgText: '',
-      msgLen: 0
-    });
+      msgLen: 0,
+      replyTo: '',
+      replyToName: ''
+    }, back));
   },
 
   /* ---------------- 收藏 ---------------- */
@@ -311,12 +374,12 @@ Page({
   /* ---------------- 创作者操作 ---------------- */
   goEdit() {
     if (!this.data.card) return;
-    wx.navigateTo({ url: '/pages/create/create?cardId=' + this.data.card.id });
+    nav.go('/pages/create/create?cardId=' + this.data.card.id );
   },
 
   goRemake() {
     // 任何访客都能“仿照制作一张自己的卡片”
-    wx.navigateTo({ url: '/pages/create/create?copyCardId=' + this.data.card.id });
+    nav.go('/pages/create/create?copyCardId=' + this.data.card.id );
   },
 
   onDelete() {
@@ -358,14 +421,44 @@ Page({
       content: content,
       at: Date.now()
     };
-    const updated = store.addMessage(card.id, msg);
+    let updated = null;
+    if (this.data.replyTo) {
+      msg.replyToName = this.data.replyToName || '';
+      updated = store.addReply(card.id, this.data.replyTo, msg);
+    } else {
+      updated = store.addMessage(card.id, msg);
+    }
     if (updated) {
+      const wasReply = !!this.data.replyTo;
+      this.setData({ replyTo: '', replyToName: '' });
       this._load();
-      wx.showToast({ title: '已送达 ✉️', icon: 'none' });
+      wx.showToast({ title: wasReply ? '已回复 ↩' : '已送达 ✉️', icon: 'none' });
       if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
     } else {
-      wx.showToast({ title: '留言失败', icon: 'none' });
+      wx.showToast({ title: '发送失败', icon: 'none' });
     }
+  },
+
+  /* ---------- 回复某条留言 / 跳转他人主页 ---------- */
+  onReply(e) {
+    const id = e.currentTarget.dataset.id;
+    const name = e.currentTarget.dataset.name || '';
+    this.setData({ replyTo: id, replyToName: name });
+    this.goComment();
+  },
+
+  cancelReply() {
+    this.setData({ replyTo: '', replyToName: '' });
+  },
+
+  onUserTap(e) {
+    const uid = e.currentTarget.dataset.uid;
+    if (!uid) return;
+    if (this.data.user && uid === this.data.user.uid) {
+      wx.switchTab({ url: '/pages/profile/profile' });
+      return;
+    }
+    nav.go('/pages/user/user?uid=' + uid );
   },
 
   /* 分享能力已按需求移除：测试号无法把卡片真正导出到小程序外 */

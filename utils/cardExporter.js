@@ -7,6 +7,15 @@ const W = 750;          // 逻辑宽度
 const PAD = 30;         // 内边距
 const INFO_H = 210;     // 底部说明区高度
 
+const MOODS = [
+  { id: 'happy', emoji: '😄', text: '开心', color: '#fbbf24' },
+  { id: 'calm', emoji: '🌊', text: '平静', color: '#38bdf8' },
+  { id: 'miss', emoji: '🌙', text: '想念', color: '#818cf8' },
+  { id: 'power', emoji: '⚡', text: '元气', color: '#f472b6' },
+  { id: 'soft', emoji: '🌸', text: '温柔', color: '#f9a8d4' },
+  { id: 'wish', emoji: '✨', text: '期待', color: '#2dd4bf' }
+];
+
 function isDarkStyle(style) {
   return ['film', 'dark'].indexOf(style) >= 0;
 }
@@ -81,6 +90,48 @@ function drawPhotoGrid(ctx, imgs, x, y, w, h) {
   }
 }
 
+/** 把照片区上的贴纸按相同百分比位置画进图里 */
+function drawStickers(ctx, card, x, y, w, h) {
+  const list = (card.stickers || []).filter(s => s && s.emoji);
+  list.forEach((s, i) => {
+    const px = x + (typeof s.x === 'number' ? s.x : 50) / 100 * w;
+    const py = y + (typeof s.y === 'number' ? s.y : 50) / 100 * h;
+    const size = s.size || 54;
+    const rot = (typeof s.rot === 'number' ? s.rot : (i % 2 ? 8 : -8)) * Math.PI / 180;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(rot);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = size + 'px sans-serif';
+    ctx.shadowColor = 'rgba(15,23,42,0.35)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    ctx.fillText(s.emoji, 0, 0);
+    ctx.restore();
+  });
+}
+
+/** 左上角的心情色徽章 */
+function drawMood(ctx, card, x, y) {
+  const m = MOODS.filter(mm => mm.id === card.mood)[0];
+  if (!m) return;
+  const label = m.emoji + ' ' + m.text;
+  ctx.save();
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  const tw = ctx.measureText(label).width;
+  const bw = tw + 34;
+  const bh = 46;
+  roundRect(ctx, x, y, bw, bh, bh / 2);
+  ctx.fillStyle = m.color;
+  ctx.fill();
+  ctx.fillStyle = '#1f2d3d';
+  ctx.fillText(label, x + 17, y + bh / 2 + 1);
+  ctx.restore();
+}
+
 function measureHeight(ratioPct) {
   const photoH = Math.round(W * (ratioPct || 100) / 100);
   return photoH + INFO_H;
@@ -119,6 +170,9 @@ function exportCard(canvas, card, ratioPct, pickedPhotos) {
       const imgs = loaded.filter(Boolean);
       if (!imgs.length) return reject(new Error('image load failed'));
       drawPhotoGrid(ctx, imgs, PAD, PAD, W - PAD * 2, photoH - PAD * 2);
+      // 贴纸与心情徽章：跟界面上看到的位置一致
+      drawStickers(ctx, card, PAD, PAD, W - PAD * 2, photoH - PAD * 2);
+      drawMood(ctx, card, PAD + 16, PAD + 16);
 
       const ink = dark ? '#eaf6ff' : '#20303c';
       const sub = dark ? 'rgba(214,240,255,0.75)' : 'rgba(40,60,75,0.62)';

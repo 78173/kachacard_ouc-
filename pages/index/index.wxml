@@ -18,7 +18,7 @@
   <view class="filter-panel anim-fadeUp anim-i1">
     <view class="fp-head">
       <text class="fp-title">筛选</text>
-      <text wx:if="{{tagSel.length || locSel.length || dateFrom || dateTo}}" class="fp-reset" bindtap="clearAllFilter">重置</text>
+      <text wx:if="{{tagSel.length || locSel.length || dateFrom || dateTo || moodSel}}" class="fp-reset" bindtap="clearAllFilter">重置</text>
     </view>
 
     <!-- 标签筛选：详细筛选入口 + 已选标签 -->
@@ -60,7 +60,7 @@
       <view class="fchip opener" bindtap="toggleLocOpen">＋ 地点筛选
         <text wx:if="{{locSel.length}}" class="tag-sel-n">{{locSel.length}}</text>
       </view>
-      <scroll-view scroll-x class="fp-scroll flex-1" enhanced show-scrollbar="{{false}}">
+      <scroll-view scroll-x class="fp-scroll flex-1" enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="fp-inner">
           <view
             wx:for="{{locSel}}"
@@ -69,6 +69,23 @@
             data-text="{{item}}"
             bindtap="removeLocSel"
           >📍 {{item}}<text class="tag-x">✕</text></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 心情色筛选：一眼挑出某种情绪的卡片 -->
+    <view wx:if="{{moodList.length > 0}}" class="fp-row moodwrap">
+      <text class="fp-mini">心情</text>
+      <scroll-view scroll-x class="fp-scroll flex-1" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="fp-inner">
+          <view
+            wx:for="{{moodList}}"
+            wx:key="id"
+            class="moodf {{item.on ? 'on' : ''}}"
+            style="background: {{item.color}};"
+            data-i="{{index}}"
+            bindtap="toggleMood"
+          >{{item.emoji}} {{item.text}} <text class="moodf-n">{{item.n}}</text></view>
         </view>
       </scroll-view>
     </view>
@@ -109,7 +126,7 @@
                 catchtap="onToggleFav"
                 data-id="{{item.id}}"
               >{{item.faved ? '♥' : '♡'}}</view>
-              <view wx:if="{{item.photos.length > 1}}" class="multi-badge">🖼 {{item.photos.length}}</view>
+              <view wx:if="{{item.photoCount > 1}}" class="multi-badge">🖼 {{item.photoCount}}</view>
             </view>
           </view>
         </view>
@@ -133,7 +150,7 @@
                 catchtap="onToggleFav"
                 data-id="{{item.id}}"
               >{{item.faved ? '♥' : '♡'}}</view>
-              <view wx:if="{{item.photos.length > 1}}" class="multi-badge">🖼 {{item.photos.length}}</view>
+              <view wx:if="{{item.photoCount > 1}}" class="multi-badge">🖼 {{item.photoCount}}</view>
             </view>
           </view>
         </view>

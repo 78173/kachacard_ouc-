@@ -71,6 +71,19 @@ const PLACE_PRESETS = ['家', '公司', '咖啡馆', '公园', '海边', '山顶
 /** 默认留言引导 */
 const DEFAULT_RESERVED = '嗨，看到这张卡片的人，写下你想对我说的话吧～';
 
+/** 心情色：给卡片定一个情绪基调（显示为卡片上的小徽章） */
+const MOODS = [
+  { id: 'happy',  emoji: '😄', text: '开心',   color: '#fbbf24' },
+  { id: 'calm',   emoji: '🌊', text: '平静',   color: '#38bdf8' },
+  { id: 'miss',   emoji: '🌙', text: '想念',   color: '#818cf8' },
+  { id: 'power',  emoji: '⚡', text: '元气',   color: '#f472b6' },
+  { id: 'soft',   emoji: '🌸', text: '温柔',   color: '#f9a8d4' },
+  { id: 'wish',   emoji: '✨', text: '期待',   color: '#2dd4bf' }
+];
+
+/** 贴纸调色板：贴在照片上的小装饰（可拖动、可删除） */
+const STICKERS = ['🌸', '⭐', '☁️', '🍃', '💛', '🎀', '🐾', '☀️', '🌊', '🍓', '✈️', '🎵'];
+
 module.exports = {
   PRESET_PHRASES,
   RATIOS,
@@ -79,5 +92,7 @@ module.exports = {
   BG_SWATCHES,
   TIME_PRESETS,
   PLACE_PRESETS,
-  DEFAULT_RESERVED
+  DEFAULT_RESERVED,
+  MOODS,
+  STICKERS
 };

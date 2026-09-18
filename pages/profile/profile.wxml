@@ -14,8 +14,8 @@
   >
     <view class="ct-frame">
       <view class="ct-photo">
-        <image class="ct-img" src="{{item.card.photos[0]}}" mode="aspectFill" style="{{item.imgStyle}}" />
-        <view wx:if="{{item.card.photos.length > 1}}" class="ct-count">{{item.card.photos.length}} 张</view>
+        <image class="ct-img" src="{{item.cover}}" mode="aspectFill" style="{{item.imgStyle}}" />
+        <view wx:if="{{item.photoCount > 1}}" class="ct-count">{{item.photoCount}} 张</view>
       </view>
       <view class="ct-info">
         <view class="ct-main">{{item.main}}</view>
@@ -29,7 +29,7 @@
   </view>
 </template>
 
-<view class="page profile {{theme}} enter-a" wx:if="{{user}}">
+<view class="page profile {{theme}} enter-a">
 
   <!-- 身份卡片 -->
   <view class="me anim-fadeUp">
@@ -47,8 +47,11 @@
       <view class="me-tag-row">
         <view class="me-tag" bindtap="toggleAccounts">⇄ 切换 / 管理账号 · {{accounts.length}}</view>
         <view class="me-tag" bindtap="onToggleTheme">{{theme === 'dark' ? '🌙 深色模式' : '☀️ 浅色模式'}}</view>
+        <view class="me-tag notify" bindtap="toggleNotify">🔔 互动反馈
+          <text wx:if="{{notifyCount}}" class="me-dot">{{notifyCount}}</text>
+        </view>
       </view>
-      <view class="me-scope">当前使用「{{user.nickname}}」 · 卡片 / 收藏 / 标签按账号区分</view>
+      <view class="me-scope">当前使用「{{user.nickname}}」</view>
     </view>
   </view>
 
@@ -93,9 +96,9 @@
         bindtouchcancel="onRowEnd"
       >
         <view class="re-idx">{{index + 1}}</view>
-        <image class="re-thumb" src="{{item.photos[0]}}" mode="aspectFill" />
+        <image class="re-thumb" src="{{item.cover}}" mode="aspectFill" />
         <view class="re-info">
-          <view class="re-t">{{item.phrases[0].text}}</view>
+          <view class="re-t">{{item.title}}</view>
           <view class="re-d">{{item.createdDay}}</view>
         </view>
         <view class="re-grip">≡</view>
@@ -129,7 +132,6 @@
     <view class="list-tool anim-fadeUp anim-i2">
       <text class="lt-hint">{{collageEdit ? '按住卡片拖动摆放，松手保存' : '我的收藏 · 拼图墙'}}</text>
       <view class="lt-tools">
-        <view wx:if="{{favList.length > 1}}" class="lt-sort" bindtap="beautifyCollage">🎨 美化</view>
         <view wx:if="{{favList.length > 1}}" class="lt-sort" bindtap="shuffleFav">🎲 洗牌</view>
         <view wx:if="{{favList.length > 0}}" class="lt-sort {{collageEdit ? 'on' : ''}}" bindtap="toggleCollageEdit">{{collageEdit ? '完成' : '✥ 编辑拼图'}}</view>
       </view>
@@ -214,7 +216,7 @@
   <view class="ph-sheet {{showPhrases ? 'show' : ''}}" catchtap="stopBubble" catchtouchmove="noop">
     <view class="sheet-head">
       <view class="sheet-title">标签词库</view>
-      <view class="sheet-tip">当前账号「{{user.nickname}}」 · 共 {{phrasePreview.length}} 条（内置 {{phraseBuilt}} · 自建 {{phrasePreview.length - phraseBuilt}}）<br/>在这里可以添加、改名、删除标签；制作卡片时只负责挑选</view>
+      <view class="sheet-tip">当前账号「{{user.nickname}}」 · 共 {{phrasePreview.length}} 条（内置 {{phraseBuilt}} · 自建 {{phrasePreview.length - phraseBuilt}}）<br/>在这里可以添加、改名、删除标签</view>
       <view class="sheet-close" catchtap="togglePhrases">✕</view>
     </view>
 
@@ -244,5 +246,40 @@
       />
       <view class="new-btn" catchtap="addTag">＋ 添加</view>
     </view>
+  </view>
+
+  <!-- ======== 互动反馈（收藏 / 留言 / 回复） ======== -->
+  <view wx:if="{{showNotify}}" class="acc-mask" bindtap="toggleNotify" catchtouchmove="noop"></view>
+  <view class="nt-sheet {{showNotify ? 'show' : ''}}" catchtap="stopBubble" catchtouchmove="noop">
+    <view class="sheet-head">
+      <view class="sheet-title">互动反馈</view>
+      <view class="sheet-tip">别人收藏、留言或回复你时，会出现在这里</view>
+      <view class="sheet-close" catchtap="toggleNotify">✕</view>
+    </view>
+
+    <scroll-view scroll-y class="sheet-scroll" style="height: {{notifyH}}px;">
+      <view class="nt-scroll-body">
+        <view wx:if="{{notifies.length === 0}}" class="msg-empty">还没有新的互动，去首页逛逛吧</view>
+        <view wx:else class="nt-list">
+          <view
+            wx:for="{{notifies}}"
+            wx:key="id"
+            class="nt-row"
+            data-card="{{item.cardId}}"
+            bindtap="onNotifyTap"
+          >
+            <view class="nt-icon">{{item.icon}}</view>
+            <view class="nt-main">
+              <view class="nt-text">{{item.text}}</view>
+              <view class="nt-foot">
+                <text class="nt-time">{{item.timeLabel}}</text>
+                <text class="nt-user" data-uid="{{item.fromUid}}" catchtap="onNotifyUser">看 TA 的主页 ›</text>
+                <text class="nt-card">查看卡片 ›</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 </view>

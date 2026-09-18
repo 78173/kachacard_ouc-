@@ -243,6 +243,36 @@
 .fchip.rm { padding-right: 18rpx; }
 .tag-x { margin-left: 6rpx; font-size: 18rpx; opacity: 0.8; }
 
+/* ---------- 心情色筛选 ---------- */
+.moodwrap { display: flex; align-items: center; }
+.moodwrap .fp-scroll.flex-1 { flex: 1; min-width: 0; }
+.fp-mini {
+  flex-shrink: 0;
+  margin-right: 14rpx;
+  font-size: 22rpx;
+  color: var(--sub);
+}
+.moodf {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 14rpx;
+  padding: 8rpx 22rpx;
+  border-radius: 32rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #1f2d3d;
+  opacity: 0.55;
+  border: 2rpx solid transparent;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+.moodf.on {
+  opacity: 1;
+  border-color: var(--ink);
+  transform: translateY(-2rpx);
+}
+.moodf:active { transform: scale(0.95); }
+.moodf .moodf-n { margin-left: 6rpx; font-size: 18rpx; opacity: 0.75; }
+
 /* 详细标签筛选浮层 */
 .tf-mask {
   position: fixed;

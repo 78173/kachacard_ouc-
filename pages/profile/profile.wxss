@@ -401,6 +401,59 @@
 .ph-act:active { transform: scale(0.92); }
 .ph-chip { padding-right: 12rpx; }
 
+/* ============ 互动反馈 ============ */
+.me-tag.notify { display: inline-flex; align-items: center; }
+.me-dot {
+  margin-left: 10rpx;
+  min-width: 28rpx;
+  text-align: center;
+  padding: 0 8rpx;
+  border-radius: 20rpx;
+  background: #f25f6a;
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 700;
+}
+.nt-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 950;
+  background: var(--surface);
+  border-radius: 30rpx 30rpx 0 0;
+  padding: 26rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -8rpx 40rpx rgba(15, 23, 42, 0.2);
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.nt-sheet.show { transform: translateY(0); }
+.nt-list { padding-bottom: 12rpx; }
+.nt-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 18rpx 16rpx;
+  margin-bottom: 14rpx;
+  border-radius: 18rpx;
+  background: var(--line);
+}
+.nt-icon {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 26rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 8rpx rgba(15, 23, 42, 0.12);
+}
+.nt-main { flex: 1; min-width: 0; }
+.nt-text { font-size: 25rpx; color: var(--ink); line-height: 1.5; }
+.nt-foot { display: flex; align-items: center; margin-top: 10rpx; }
+.nt-time { font-size: 19rpx; color: var(--sub); margin-right: 20rpx; }
+.nt-user, .nt-card { font-size: 20rpx; color: var(--accent); margin-right: 20rpx; }
+
 /* 滚动区高度由 JS 运行时测量(_fitSheet)设置；这里仅兜底 */
 .acc-sheet .sheet-scroll,
 .ph-sheet .sheet-scroll { height: 340rpx; }

@@ -1,3 +1,4 @@
+const nav = require('../../utils/nav');
 const store = require('../../utils/store');
 const util = require('../../utils/util');
 const presets = require('../../data/presets');
@@ -21,6 +22,9 @@ Page({
     showLocOpen: false,
     locOpenList: [],        // 地点浮层选项（含 sel 标记）
     locHStyle: 'height:300rpx',
+    // 心情色筛选（单选，再点取消）
+    moodList: [],
+    moodSel: '',
     groups: [],             // 按“日”分组
     total: 0,
     hasCards: false,
@@ -87,8 +91,34 @@ Page({
       .sort((a, b) => locCnt[b] - locCnt[a])
       .map(k => ({ text: k, n: locCnt[k] }));
 
+    // 心情色：只列出卡片里真正用过的，按用得多的排前面
+    const moodCnt = {};
+    all.forEach(c => {
+      if (!c.mood) return;
+      moodCnt[c.mood] = (moodCnt[c.mood] || 0) + 1;
+    });
+    const moodList = (presets.MOODS || [])
+      .filter(m => moodCnt[m.id])
+      .sort((a, b) => moodCnt[b.id] - moodCnt[a.id])
+      .map(m => ({
+        id: m.id, emoji: m.emoji, text: m.text, color: m.color,
+        n: moodCnt[m.id],
+        on: this.data.moodSel === m.id
+      }));
+
     this._allPhrases = tagList.slice();
-    this.setData({ tagList, locList });
+    this.setData({ tagList, locList, moodList });
+  },
+
+  /* ---------- 心情筛选（单选） ---------- */
+  toggleMood(e) {
+    const m = this.data.moodList[e.currentTarget.dataset.i];
+    if (!m) return;
+    const next = this.data.moodSel === m.id ? '' : m.id;
+    this.setData({
+      moodSel: next,
+      moodList: this.data.moodList.map(x => Object.assign({}, x, { on: x.id === next }))
+    }, () => this.applyFilter());
   },
 
   /* ---------- 标签筛选（详细浮层 / 已选胶囊） ---------- */
@@ -243,7 +273,9 @@ Page({
       tagSel: [],
       locSel: [],
       dateFrom: '',
-      dateTo: ''
+      dateTo: '',
+      moodSel: '',
+      moodList: (this.data.moodList || []).map(x => Object.assign({}, x, { on: false }))
     }, () => {
       this._syncTagOpen();
       this._syncLocOpen();
@@ -260,17 +292,22 @@ Page({
     const fromDay = from ? new Date(from.replace(/-/g, '/')).getTime() : 0;
     const toDay = to ? new Date(to.replace(/-/g, '/')).getTime() + 86400000 : Infinity;
 
+    const mood = this.data.moodSel;
     let list = (this._cards || []).filter(c => {
       const phrases = (c.phrases || []).map(p => p.text);
       if (tags.length && !tags.some(t => phrases.indexOf(t) >= 0)) return false;
       if (locs.length && locs.indexOf((c.locText || '').trim()) < 0) return false;
+      if (mood && c.mood !== mood) return false;
       const t = c.createdAt || 0;
       if (t < fromDay || t >= toDay) return false;
       return true;
     }).slice().sort((a, b) => b.createdAt - a.createdAt);
 
+    // 每张卡片的展示字段先算好（视图层不再写 item.photos.length 这类深层次取值，
+    // 免得遇到缺字段的旧卡片时整页渲染失败）
     list = list.map(c => {
       c.faved = this._favs.has(c.id);
+      c.photoCount = (c.photos || []).length;
       return c;
     });
 
@@ -349,7 +386,7 @@ Page({
   /* ---------- 交互 ---------- */
   onCardTap(e) {
     const card = e.currentTarget.dataset.card;
-    if (card) wx.navigateTo({ url: '/pages/detail/detail?cardId=' + card.id });
+    if (card) nav.go('/pages/detail/detail?cardId=' + card.id );
   },
 
   /* 🎲 随机看一张（趣味入口） */
@@ -361,16 +398,18 @@ Page({
     }
     const pick = list[Math.floor(Math.random() * list.length)];
     wx.vibrateShort && wx.vibrateShort({ type: 'light' });
-    wx.navigateTo({ url: '/pages/detail/detail?cardId=' + pick.id });
+    nav.go('/pages/detail/detail?cardId=' + pick.id );
   },
 
   onToggleFav(e) {
     const id = e.currentTarget.dataset.id;
     const res = store.toggleFav(store.getUser().uid, id);
     const groups = this.data.groups;
+    const sides = ['left', 'right'];   // 不用 for...of：避免转 ES5 时生成运行时辅助模块
     outer:
     for (let gi = 0; gi < groups.length; gi++) {
-      for (const side of ['left', 'right']) {
+      for (let si = 0; si < sides.length; si++) {
+        const side = sides[si];
         const items = groups[gi][side] || [];
         for (let ii = 0; ii < items.length; ii++) {
           if (items[ii].id === id) {

@@ -16,7 +16,7 @@
     <!-- 照片主体：full 模式多图轮切，可选自动播放 -->
     <view class="shot">
       <swiper
-        wx:if="{{mode === 'full' && card.photos.length > 1}}"
+        wx:if="{{mode === 'full' && shots.length > 1}}"
         class="swiper"
         circular="{{true}}"
         autoplay="{{autoplay}}"
@@ -26,14 +26,30 @@
         bindchange="onSwiperChange"
         bindtouchstart="onSwiperTouch"
       >
-        <swiper-item wx:for="{{card.photos}}" wx:key="index">
+        <swiper-item wx:for="{{shots}}" wx:key="index">
           <image class="shot-img" src="{{item}}" mode="aspectFill" lazy-load="{{true}}" />
         </swiper-item>
       </swiper>
-      <image wx:else class="shot-img" src="{{card.photos[0]}}" mode="aspectFill" />
+      <image wx:else class="shot-img" src="{{shots[0]}}" mode="aspectFill" />
 
-      <view wx:if="{{mode === 'full' && card.photos.length > 1}}" class="shot-badge">
-        {{current + 1}} / {{card.photos.length}}
+      <!-- 贴纸层：制作页可拖动 / 长按删除，其它页面为静态装饰 -->
+      <view
+        wx:for="{{stickers}}"
+        wx:key="id"
+        class="sticker {{skDragCur === index ? 'dragging' : ''}}"
+        style="{{item.style}}"
+        data-i="{{index}}"
+        catchtouchstart="onStickerStart"
+        catchtouchmove="onStickerMove"
+        catchtouchend="onStickerEnd"
+        catchtouchcancel="onStickerEnd"
+        bindlongpress="onStickerLongPress"
+      >{{item.emoji}}</view>
+
+      <view wx:if="{{mood}}" class="mood-badge" style="{{mood.style}}">{{mood.emoji}} {{mood.text}}</view>
+
+      <view wx:if="{{mode === 'full' && shots.length > 1}}" class="shot-badge">
+        {{current + 1}} / {{shots.length}}
       </view>
 
       <view class="film-meta" wx:if="{{card.timeText && view.style === 'film'}}">
@@ -43,15 +59,10 @@
       <view class="shot-brand">✿ 咔嚓</view>
     </view>
 
-    <!-- 快捷语说明栏 + 时间地点基础元素 -->
+    <!-- 标签说明栏 + 时间地点基础元素 -->
     <view class="caption">
       <view class="phrases">
-        <view
-          wx:for="{{card.phrases}}"
-          wx:key="id"
-          class="phrase {{index === 0 ? 'main' : ''}}"
-          wx:if="{{index < posterLimit || mode === 'full'}}"
-        >
+        <view wx:for="{{lines}}" wx:key="id" class="phrase {{item.main ? 'main' : ''}}">
           <text wx:if="{{item.emoji}}" class="pe">{{item.emoji}}</text>
           <text class="pt">{{item.text}}</text>
         </view>

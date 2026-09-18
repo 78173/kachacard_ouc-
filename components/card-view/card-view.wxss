@@ -50,6 +50,25 @@
   text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.35);
 }
 
+/* ---------- 贴纸（可拖动的小装饰） ---------- */
+.sticker {
+  position: absolute; z-index: 6; line-height: 1;
+  filter: drop-shadow(0 4rpx 8rpx rgba(15, 23, 42, 0.35));
+  transition: transform 0.12s ease;
+}
+.sticker.dragging {
+  z-index: 9;
+  filter: drop-shadow(0 12rpx 20rpx rgba(15, 23, 42, 0.5));
+}
+
+/* ---------- 心情色徽章 ---------- */
+.mood-badge {
+  position: absolute; left: 16rpx; top: 16rpx; z-index: 6;
+  padding: 6rpx 18rpx; border-radius: 30rpx;
+  font-size: 20rpx; font-weight: 700; color: #1f2d3d;
+  box-shadow: 0 6rpx 14rpx -6rpx rgba(15, 23, 42, 0.5), inset 0 1rpx 0 rgba(255, 255, 255, 0.6);
+}
+
 /* ---------- 说明栏 ---------- */
 .caption { position: relative; z-index: 1; }
 .phrases { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx; }
