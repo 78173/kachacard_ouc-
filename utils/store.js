@@ -182,6 +182,29 @@ function addCustomPhrase(text, emoji, uid) {
 }
 
 /**
+ * 修改标签（作用于指定账号，默认当前账号）。
+ * 自建词直接改文本；内置词则“隐藏原词 + 以新文本新增一条自建词”。
+ * 已制作卡片上的文字为快照，不受影响。
+ */
+function updatePhrase(id, text, emoji, uid) {
+  const u = uid || currentUid();
+  const nextText = (text || '').trim();
+  if (!nextText) return null;
+  if (isPresetId(id)) {
+    const hidden = read(phraseHiddenKey(u), []);
+    if (hidden.indexOf(id) < 0) hidden.push(id);
+    write(phraseHiddenKey(u), hidden);
+    return addCustomPhrase(nextText, emoji || '', u);
+  }
+  const custom = read(phraseCustomKey(u), []);
+  const i = custom.findIndex(p => p.id === id);
+  if (i < 0) return null;
+  custom[i] = Object.assign({}, custom[i], { text: nextText, emoji: emoji || custom[i].emoji || '' });
+  write(phraseCustomKey(u), custom);
+  return custom[i];
+}
+
+/**
  * 删除（隐藏）快捷语（作用于指定账号，默认当前账号）：
  * 内置词进入该账号隐藏名单，自建词从该账号列表移除。
  * 已制作卡片上的文字为快照，不受影响。
@@ -374,6 +397,7 @@ module.exports = {
   removeAccount,
   getPhraseLibrary,
   addCustomPhrase,
+  updatePhrase,
   removePhrase,
   persistImage,
   removeImages,

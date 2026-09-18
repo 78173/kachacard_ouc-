@@ -274,62 +274,13 @@
   font-size: 23rpx;
   font-weight: 600;
 }
-.phrase-chips { margin-top: 18rpx; }
+.phrase-chips { margin-top: 6rpx; }
 
-.phrase-tool {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.phrase-manage {
-  font-size: 22rpx;
-  color: var(--sub);
-  background: var(--line);
-  border-radius: 30rpx;
-  padding: 8rpx 22rpx;
-}
-.phrase-manage.on {
-  background: var(--accent);
-  color: #fff;
-}
-.phrase-tip {
-  margin-left: 16rpx;
-  font-size: 19rpx;
-  color: var(--accent-soft);
-}
-
-.phrase-chips .chip-wrap {
-  position: relative;
-  display: inline-flex;
-}
-.phrase-chips .chip {
-  margin: 0;
-}
-.ph-del {
-  position: absolute;
-  top: -12rpx;
-  right: -12rpx;
-  width: 40rpx;
-  height: 40rpx;
-  line-height: 40rpx;
-  text-align: center;
-  border-radius: 50%;
-  background: #d9534f;
-  color: #fff;
-  font-size: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(180, 40, 40, 0.35);
-  z-index: 3;
-}
-.chip-add {
-  display: inline-block;
+.phrase-tip-line {
   margin-top: 20rpx;
-  padding: 12rpx 28rpx;
-  border: 2rpx dashed var(--accent-soft);
-  border-radius: 40rpx;
-  font-size: 24rpx;
-  color: var(--accent-soft);
+  font-size: 20rpx;
+  color: var(--sub);
 }
-.chip-add:active { background: var(--line); }
 
 /* ---------- ④ 时间地点 ---------- */
 .field { margin-bottom: 26rpx; }

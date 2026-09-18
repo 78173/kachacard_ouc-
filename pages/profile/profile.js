@@ -17,6 +17,7 @@ Page({
     showPhrases: false,      // 标签词库预览
     phrasePreview: [],
     phraseBuilt: 0,
+    newTag: '',              // 新增标签输入
     phH: 320,                // 词库滚动高度(px)
     swap: false,
     // 瀑布流双列
@@ -593,15 +594,28 @@ Page({
   },
 
   /* ---------- 标签词库预览（当前账号） ---------- */
+  _phraseSheetData() {
+    const presetIds = {};
+    presets.PRESET_PHRASES.forEach(p => { presetIds[p.id] = true; });
+    const list = store.getPhraseLibrary().map(p => Object.assign({}, p, {
+      built: !!presetIds[p.id]
+    }));
+    return { phrasePreview: list, phraseBuilt: list.filter(p => p.built).length };
+  },
+
+  /** 词库变更后：刷新面板与统计 */
+  _refreshPhraseSheet() {
+    const patch = this._phraseSheetData();
+    patch['stats.phrases'] = patch.phrasePreview.length;
+    this.setData(patch, () => {
+      if (this.data.showPhrases) this._fitSheet('.ph-sheet', 'phH', '.ph-sheet .ph-scroll-body');
+    });
+  },
+
   togglePhrases() {
     if (!this.data.showPhrases) {
-      const presetIds = {};
-      presets.PRESET_PHRASES.forEach(p => { presetIds[p.id] = true; });
-      const list = store.getPhraseLibrary().map(p => Object.assign({}, p, {
-        built: !!presetIds[p.id]
-      }));
-      const built = list.filter(p => p.built).length;
-      this.setData({ showPhrases: true, showAccounts: false, phrasePreview: list, phraseBuilt: built }, () => {
+      const patch = this._phraseSheetData();
+      this.setData(Object.assign({ showPhrases: true, showAccounts: false, newTag: '' }, patch), () => {
         this._navHide();
         this._fitSheet('.ph-sheet', 'phH', '.ph-sheet .ph-scroll-body');
       });
@@ -609,6 +623,60 @@ Page({
       this.setData({ showPhrases: false });
       this._navShow();
     }
+  },
+
+  onNewTag(e) {
+    this.setData({ newTag: e.detail.value });
+  },
+
+  addTag() {
+    const text = (this.data.newTag || '').trim();
+    if (!text) {
+      wx.showToast({ title: '请输入标签内容', icon: 'none' });
+      return;
+    }
+    store.addCustomPhrase(text, '✨');
+    this.setData({ newTag: '' });
+    this._refreshPhraseSheet();
+    wx.showToast({ title: '已添加', icon: 'success' });
+  },
+
+  renameTag(e) {
+    const id = e.currentTarget.dataset.id;
+    const cur = (this.data.phrasePreview || []).find(p => p.id === id);
+    if (!cur) return;
+    wx.showModal({
+      title: '修改标签',
+      editable: true,
+      content: cur.text,
+      placeholderText: '输入新的标签内容',
+      success: (res) => {
+        if (!res.confirm) return;
+        const text = (res.content || '').trim();
+        if (!text || text === cur.text) return;
+        store.updatePhrase(id, text, cur.emoji);
+        this._refreshPhraseSheet();
+        wx.showToast({ title: '已修改', icon: 'success' });
+      }
+    });
+  },
+
+  deleteTag(e) {
+    const id = e.currentTarget.dataset.id;
+    const cur = (this.data.phrasePreview || []).find(p => p.id === id);
+    if (!cur) return;
+    wx.showModal({
+      title: '删除标签',
+      content: '删除「' + cur.text + '」？已制作卡片上的文字不受影响；该标签将从当前账号的词库中移除。',
+      confirmText: '删除',
+      confirmColor: '#d9534f',
+      success: (res) => {
+        if (!res.confirm) return;
+        store.removePhrase(id);
+        this._refreshPhraseSheet();
+        wx.showToast({ title: '已删除', icon: 'none' });
+      }
+    });
   },
 
   /* ---------- 卡片交互 ---------- */

@@ -385,6 +385,21 @@
   padding: 0 10rpx;
 }
 .ph-chip.built .ph-chip-tag { color: var(--sub); border-color: var(--line); }
+.ph-act {
+  margin-left: 10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 20rpx;
+  box-shadow: 0 2rpx 6rpx rgba(15, 23, 42, 0.12);
+}
+.ph-act.del { color: #d9534f; }
+.ph-act:active { transform: scale(0.92); }
+.ph-chip { padding-right: 12rpx; }
 
 /* 滚动区高度由 JS 运行时测量(_fitSheet)设置；这里仅兜底 */
 .acc-sheet .sheet-scroll,
@@ -593,14 +608,4 @@
   font-size: 24rpx;
   z-index: 3;
   box-shadow: 0 4rpx 10rpx rgba(15, 23, 42, 0.3);
-}
-.me-tag {
-  display: flex;
-  align-items: center; /* 垂直居中 */
-}
-
-.me-tag-icon {
-  width: 32rpx;  /* 根据你的需求调整大小 */
-  height: 32rpx;
-  margin-right: 8rpx; /* 图片和文字之间的间距 */
 }

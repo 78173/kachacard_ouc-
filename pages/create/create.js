@@ -42,7 +42,6 @@ Page({
     phraseChips: [],
     phrases: [],
     selPhrase: {},
-    managePhrase: false,
     timeText: '',
     locText: '',
     timePresets: presets.TIME_PRESETS,
@@ -298,32 +297,7 @@ Page({
     this.setData({ customBg: null }, () => this._rebuild());
   },
 
-  /* ============ ③ 标签 ============ */
-  toggleManage() {
-    this.setData({ managePhrase: !this.data.managePhrase });
-  },
-
-  removePhrase(e) {
-    const chip = this.data.phraseChips[e.currentTarget.dataset.i];
-    if (!chip) return;
-    wx.showModal({
-      title: '删除标签',
-      content: '删除「' + chip.text + '」？已制作卡片上的文字不受影响；该标签将从当前账号的词库中移除。',
-      confirmText: '删除',
-      confirmColor: '#d9534f',
-      success: (res) => {
-        if (!res.confirm) return;
-        store.removePhrase(chip.id);
-        const phrases = this.data.phrases.filter(p => p.id !== chip.id);
-        this.setData({
-          phraseLibrary: store.getPhraseLibrary(),
-          phrases
-        }, () => this._rebuild());
-        wx.showToast({ title: '已删除', icon: 'none' });
-      }
-    });
-  },
-
+  /* ============ ③ 标签（只做选择，词条增删改在「我的 → 标签素材」） ============ */
   onPickPhrase(e) {
     const idx = e.currentTarget.dataset.i;
     const picked = this.data.phraseLibrary[idx];
@@ -339,30 +313,6 @@ Page({
       phrases.push(picked);
     }
     this.setData({ phrases }, () => this._rebuild());
-  },
-
-  addCustomPhrase() {
-    wx.showModal({
-      title: '新增标签',
-      editable: true,
-      placeholderText: '例如：今天也要元气满满',
-      success: (res) => {
-        if (!res.confirm) return;
-        const text = (res.content || '').trim();
-        if (!text) {
-          wx.showToast({ title: '标签不能为空', icon: 'none' });
-          return;
-        }
-        const p = store.addCustomPhrase(text, '✨');
-        const phrases = this.data.phrases.slice();
-        if (phrases.length < MAX_PHRASES) phrases.push(p);
-        this.setData({
-          phraseLibrary: store.getPhraseLibrary(),
-          phrases
-        }, () => this._rebuild());
-        wx.showToast({ title: '已加入当前账号词库', icon: 'success' });
-      }
-    });
   },
 
   /* ============ ④ 时间 / 地点 ============ */

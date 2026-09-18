@@ -46,12 +46,9 @@
       <view class="me-id">ID · {{user.uid}}</view>
       <view class="me-tag-row">
         <view class="me-tag" bindtap="toggleAccounts">⇄ 切换 / 管理账号 · {{accounts.length}}</view>
-        <view class="me-tag" bindtap="onToggleTheme">
-  <image class="me-tag-icon" src="{{theme === 'dark' ? '/img/隐藏.png' : '/img/显示.png'}}" mode="aspectFit" />
-  <text>{{theme === 'dark' ? '深色模式' : '浅色模式'}}</text>
-</view>
+        <view class="me-tag" bindtap="onToggleTheme">{{theme === 'dark' ? '🌙 深色模式' : '☀️ 浅色模式'}}</view>
       </view>
-      <view class="me-scope">当前使用「{{user.nickname}}」</view>
+      <view class="me-scope">当前使用「{{user.nickname}}」 · 卡片 / 收藏 / 标签按账号区分</view>
     </view>
   </view>
 
@@ -217,21 +214,35 @@
   <view class="ph-sheet {{showPhrases ? 'show' : ''}}" catchtap="stopBubble" catchtouchmove="noop">
     <view class="sheet-head">
       <view class="sheet-title">标签词库</view>
-      <view class="sheet-tip">当前账号「{{user.nickname}}」 · 共 {{phrasePreview.length}} 条（内置 {{phraseBuilt}} · 自建 {{phrasePreview.length - phraseBuilt}}）<br/>不同账号各自独立；新增/删除在制作页的标签管理</view>
+      <view class="sheet-tip">当前账号「{{user.nickname}}」 · 共 {{phrasePreview.length}} 条（内置 {{phraseBuilt}} · 自建 {{phrasePreview.length - phraseBuilt}}）<br/>在这里可以添加、改名、删除标签；制作卡片时只负责挑选</view>
       <view class="sheet-close" catchtap="togglePhrases">✕</view>
     </view>
 
     <scroll-view scroll-y class="sheet-scroll" style="height: {{phH}}px;">
       <view class="ph-scroll-body">
-        <view wx:if="{{phrasePreview.length === 0}}" class="msg-empty">词库为空，去制作页新增标签吧</view>
+        <view wx:if="{{phrasePreview.length === 0}}" class="msg-empty">词库为空，在下方添加第一条标签吧</view>
         <view wx:else class="ph-chips">
           <view wx:for="{{phrasePreview}}" wx:key="id" class="ph-chip {{item.built ? 'built' : ''}}">
             <text class="ph-chip-emoji">{{item.emoji}}</text>
             <text class="ph-chip-text">{{item.text}}</text>
             <text class="ph-chip-tag">{{item.built ? '内置' : '自建'}}</text>
+            <view class="ph-act" catchtap="renameTag" data-id="{{item.id}}">✎</view>
+            <view class="ph-act del" catchtap="deleteTag" data-id="{{item.id}}">✕</view>
           </view>
         </view>
       </view>
     </scroll-view>
+
+    <!-- 新增标签 -->
+    <view class="sheet-new">
+      <input
+        class="new-input"
+        value="{{newTag}}"
+        placeholder="输入新标签，例如：今天也要元气满满"
+        placeholder-class="ph"
+        bindinput="onNewTag"
+      />
+      <view class="new-btn" catchtap="addTag">＋ 添加</view>
+    </view>
   </view>
 </view>

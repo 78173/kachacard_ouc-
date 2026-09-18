@@ -61,7 +61,7 @@
       value="{{msgText}}"
       maxlength="{{msgMax}}"
       placeholder="写下想对 TA 说的长一点的话……（最多 {{msgMax}} 字）"
-      placeholder-class="ph"
+      placeholdesr-class="ph"
       bindinput="onMsgInput"
     ></textarea>
     <view class="compose-foot">
@@ -104,7 +104,7 @@
   <view class="pk-sheet {{showPick ? 'show' : ''}}" catchtap="noop" catchtouchmove="noop">
     <view class="pk-head">
       <view class="pk-title">选择要导出的图片</view>
-      <view class="pk-sub">已选 {{pickCount}} / {{pickItems.length}} 张 </view>
+      <view class="pk-sub">已选 {{pickCount}} / {{pickItems.length}} 张 · 只选 1 张即为原来的单张导出</view>
       <view class="pk-close" catchtap="closePick">✕</view>
     </view>
     <view class="pk-quick">

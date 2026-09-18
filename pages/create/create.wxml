@@ -138,30 +138,17 @@
       </view>
     </view>
 
-    <view class="phrase-tool">
-      <view class="phrase-manage {{managePhrase ? 'on' : ''}}" bindtap="toggleManage">
-        {{managePhrase ? '完成管理' : '⚙ 管理标签'}}
-      </view>
-      <text wx:if="{{managePhrase}}" class="phrase-tip">点标签上的 × 可删除</text>
-    </view>
-
     <view class="chips phrase-chips">
-      <view wx:for="{{phraseChips}}" wx:key="id" class="chip-wrap">
-        <view
-          class="chip {{item.on ? 'on' : ''}}"
-          data-i="{{index}}"
-           bindtap="onPickPhrase"
-        >{{item.emoji}} {{item.text}}</view>
-        <view
-          wx:if="{{managePhrase}}"
-          class="ph-del"
-          data-i="{{index}}"
-          catchtap="removePhrase"
-        >✕</view>
-      </view>
+      <view
+        wx:for="{{phraseChips}}"
+        wx:key="id"
+        class="chip {{item.on ? 'on' : ''}}"
+        data-i="{{index}}"
+        bindtap="onPickPhrase"
+      >{{item.emoji}} {{item.text}}</view>
     </view>
 
-    <view class="chip-add" bindtap="addCustomPhrase">＋ 新增一条标签</view>
+    <view class="phrase-tip-line">标签的新增、改名与删除，都在「我的 → 标签素材」里管理</view>
   </view>
 
   <!-- ============ ④ 时间 / 地点 ============ -->
