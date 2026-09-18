@@ -306,7 +306,7 @@ Page({
       setTimeout(() => wx.navigateBack(), 500);
       return;
     }
-    wx.setNavigationBarTitle({ title: '卡片详情' });
+    wx.setNavigationBarTitle({ title: '' });
     this.setData({ cardId: options.cardId, user: store.getUser() });
     this._load();
   },

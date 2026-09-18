@@ -2,5 +2,5 @@
   "usingComponents": {
     "card-view": "/components/card-view/card-view"
   },
-  "navigationBarTitleText": "用户主页"
+  "navigationBarTitleText": ""
 }
